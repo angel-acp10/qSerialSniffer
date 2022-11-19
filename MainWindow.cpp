@@ -25,13 +25,32 @@ MainWindow::MainWindow(QWidget *parent)
     initButtons();
     initEncodingList();
 
-    connect(ui->settings_pushButton, &QPushButton::clicked,
-            mSettingsDialog, &SettingsDialog::exec);
+    //connect(ui->settings_pushButton, &QPushButton::clicked,
+            //mSettingsDialog, &SettingsDialog::exec);
+
+    connect(ui->settings_pushButton, &QPushButton::clicked, mCmds->getId, &GetId::write);
+
+
+    connect(mCmds->getId, &GetId::received,
+            [this](QString id)
+            {
+                QMessageBox::information(this, "GetId response", id);
+            });
 
     connect(mSerial, &SerialIO::error,
-            [this](QString stringError)
+            [this]()
             {
-                QMessageBox::critical(this, "SerialPort Error", stringError);
+                QMessageBox::critical(this, "SerialPort Error", "");
+            });
+    connect(mSerial, &SerialIO::writeTimeout,
+            [this]()
+            {
+                QMessageBox::critical(this, "SerialPort writeTimeout", "");
+            });
+    connect(mSerial, &SerialIO::readTimeout,
+            [this]()
+            {
+                QMessageBox::critical(this, "SerialPort readTimeout", "");
             });
 }
 
@@ -92,18 +111,15 @@ void MainWindow::play()
     ui->play_pushButton->setDisabled(true);
     ui->pause_pushButton->setEnabled(true);
 
-    mSerial->open("COM7", 115200);
-    mCmds->getId->write();
-    connect(mCmds->getId, &GetId::received,
-            [this](QString id)
-            {
-                QMessageBox::information(this, "GetId response", id);
-            });
+    mSerial->setPortName("COM7");
+    mSerial->setBaudRate(115200);
+    mSerial->open(QIODevice::ReadWrite);
 }
 
 void MainWindow::pause()
 {
     ui->pause_pushButton->setDisabled(true);
     ui->play_pushButton->setEnabled(true);
+    mSerial->close();
 }
 

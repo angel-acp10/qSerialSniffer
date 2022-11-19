@@ -1,170 +1,150 @@
 #include "SerialIO.h"
-#include <QTime>
+#include <QTimer>
 
 
 SerialIO::SerialIO(QObject *parent) :
-    QThread(parent),
-    m_requests(),
-    m_serial(new QSerialPort),
-    m_stage(STAGE_CLOSED),
-    m_timeout(50),
-    m_attempts(3)
+    QSerialPort(parent),
+    m_maxTimeout(50),
+    m_maxAttempts(3),
+    m_remainingAttempts(3),
+    m_stage(STAGE_IDLE),
+    m_txLen(0),
+    m_rxLen(0),
+    m_rxBuff(4000, 0),
+    m_writeTimer(new QTimer(parent)),
+    m_readTimer(new QTimer(parent)),
+    m_currRequest(),
+    m_requests()
 {
+    m_writeTimer->setSingleShot(true);
+    m_readTimer->setSingleShot(true);
+    connect(m_writeTimer, &QTimer::timeout, this, &SerialIO::onWriteTimeout);
+    connect(m_readTimer, &QTimer::timeout, this, &SerialIO::onReadTimeout);
+
+    connect(this, &QSerialPort::bytesWritten, this, &SerialIO::onWrittenBytes);
+    connect(this, &QSerialPort::errorOccurred, this, &SerialIO::onError);
 }
 
 SerialIO::~SerialIO()
 {
     if(m_requests.isEmpty() == false)
         m_requests.clear();
-    m_stage = STAGE_KILL;
-    wait();
-    delete m_serial;
-}
 
-bool SerialIO::open(const QString &portName, const int baudrate)
-{
-    if(m_serial->isOpen())
-    {
-        // if it is already open, check if port or baudrate have changed
-        if( (m_serial->portName() == portName) && (m_serial->baudRate() == baudrate) )
-            return true; // nothing to do
-
-        close();
-    }
-    m_requests.clear();
-
-    // open
-    m_serial->setPortName(portName);
-    m_serial->setBaudRate(baudrate);
-    m_serial->setDataBits( QSerialPort::Data8 );
-    m_serial->setParity( QSerialPort::NoParity );
-    m_serial->setStopBits( QSerialPort::OneStop );
-    if(m_serial->open(QIODeviceBase::ReadWrite) == false)
-    {
-        emit error(tr("Can't open %1, error code %2").arg(portName).arg(m_serial->error()));
-        return false;
-    }
-    m_stage = STAGE_DEQUEUE;
-    return true;
-}
-
-bool SerialIO::close()
-{
-    m_stage = STAGE_CLOSED;
-    while(m_serial->isOpen())
-        this->msleep(10);
-
-    return true;
 }
 
 void SerialIO::addRequest(QByteArray &txCmd, Command *cmdPtr)
 {
-    if (txCmd.isEmpty() == true || cmdPtr==nullptr)
-    {
-        emit error("Nothing to send.");
-        return;
-    }
-
     request_t request = {
         .txCmd = txCmd,
         .cmdPtr = cmdPtr
     };
     m_requests.enqueue(request);
 
-    if (!isRunning())
-        start();
+    if(isOpen() && m_stage==STAGE_IDLE)
+    {
+        dequeueRequest();
+    }
 }
 
-void SerialIO::run()
+void SerialIO::dequeueRequest()
 {
-    request_t request;
-    QByteArray rxBuff;
-    int attempts = 0;
-    int rxLen = 0;
-    rxBuff.resize(4000);
-
-    while(m_stage != STAGE_KILL)
+    if(m_requests.length() > 0)
     {
-        switch(m_stage)
+        m_currRequest = m_requests.dequeue();
+        m_remainingAttempts = m_maxAttempts;
+        writeRequest();
+    }
+}
+
+void SerialIO::writeRequest()
+{
+    m_stage = STAGE_WRITE;
+
+    m_txLen = 0;
+    m_remainingAttempts--;
+    write(m_currRequest.txCmd);
+
+    m_writeTimer->start(m_maxTimeout);
+}
+
+void SerialIO::onWriteTimeout()
+{
+    if(m_remainingAttempts > 0)
+        writeRequest();
+    else
+    {
+        m_stage = STAGE_IDLE;
+        dequeueRequest();
+    }
+}
+
+void SerialIO::onWrittenBytes(const qint64 bytes)
+{
+    m_writeTimer->start(m_maxTimeout);
+
+    m_txLen += bytes;
+    if(bytes >= m_currRequest.txCmd.length())
+    {
+        // write completed
+        m_writeTimer->stop();
+        m_rxLen = 0;
+        m_stage = STAGE_READ;
+        connect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
+        m_readTimer->start(m_maxTimeout);
+    }
+}
+
+void SerialIO::onReadTimeout()
+{
+    disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
+
+    if(m_remainingAttempts > 0)
+        writeRequest();
+    else
+    {
+        m_stage = STAGE_IDLE;
+        dequeueRequest();
+    }
+}
+
+void SerialIO::onReadBytes()
+{
+    m_readTimer->start(m_maxTimeout);
+
+    qint64 toRead = bytesAvailable();
+    while(toRead != 0)
+    {
+        // does the response fit?
+        if((m_rxLen + toRead) > m_rxBuff.length())
+            m_rxBuff.resize(m_rxLen + toRead);
+
+        // copies response to rxBuff
+        read( &m_rxBuff[m_rxLen], toRead );
+        m_rxLen += toRead;
+        toRead = bytesAvailable();
+    }
+
+    // check if the received response is completed
+    // 2nd and 3rd byte indicates the remaining bytes of the response
+    if ( m_rxLen >= 3)
+    {
+        uint16_t cmdLength = (((uint16_t)m_rxBuff[1]<<8)|(m_rxBuff[2])) + 3;
+        if ( m_rxLen >= cmdLength )
         {
-        case STAGE_CLOSED:
-        case STAGE_KILL:
-            m_serial->close();
-            while(m_stage==STAGE_CLOSED)
-                this->msleep(10);
-            break;
-
-        case STAGE_DEQUEUE:
-            if(m_requests.isEmpty())
-            {
-                this->msleep(10);
-                continue;
-            }
-            request = m_requests.dequeue();
-            attempts = m_attempts;
-            m_stage = STAGE_WRITE;
-            break;
-
-        case STAGE_WRITE:
-            m_serial->clear();  // elimina cualquier caracter que hubiera tanto rx como tx
-            if (m_serial->write(request.txCmd) == -1) // check error
-            {
-                m_stage = STAGE_DEQUEUE;
-                emit error(tr("Failed to write on COM port. An error occurred"));
-                break;
-            }
-            if (m_serial->waitForBytesWritten(m_timeout) == false)
-            {
-                m_stage = STAGE_DEQUEUE;
-                emit this->timeout("Write timeout.");
-                break;
-            }
-            m_stage = STAGE_READ;
-            rxLen = 0;
-            break;
-
-        case STAGE_READ:
-            if (m_serial->waitForReadyRead(m_timeout) == false)
-            {
-                // device did not reply
-                attempts--;
-                if(attempts == 0)
-                {
-                    m_stage = STAGE_DEQUEUE;
-                    emit this->timeout("Read timeout.");
-                    break;
-                }
-            }
-
-            int toRead = m_serial->bytesAvailable();
-            while ( toRead != 0 )
-            {
-                // does the response fit?
-                if((rxLen + toRead) > rxBuff.length())
-                    rxBuff.resize(rxLen + toRead);
-
-                // copies response to rxBuff
-                if( m_serial->read( &rxBuff[rxLen], toRead ) == -1 )
-                {
-                    m_stage = STAGE_CLOSED;
-                    emit this->timeout("Port closed, unable to read");
-                }
-                rxLen += toRead;
-                toRead = m_serial->bytesAvailable();
-            }
-
-            // check if the received response is completed
-            // 2nd and 3rd byte indicates the remaining bytes of the response
-            if ( rxLen >= 3)
-            {
-                uint16_t cmdLength = (((uint16_t)rxBuff[1]<<8)|(rxBuff[2])) + 3;
-                if ( rxLen >= cmdLength )
-                {
-                    m_stage = STAGE_DEQUEUE;
-                    request.cmdPtr->read(rxBuff.mid(0, cmdLength));
-                }
-            }
-            break;
+            disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
+            m_readTimer->stop();
+            m_currRequest.cmdPtr->read(m_rxBuff.mid(0, cmdLength));
+            m_stage = STAGE_IDLE;
+            dequeueRequest();
         }
     }
+}
+
+void SerialIO::onError()
+{
+    disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
+    m_readTimer->stop();
+    m_writeTimer->stop();
+    m_stage = STAGE_IDLE;
+    m_requests.clear();
 }

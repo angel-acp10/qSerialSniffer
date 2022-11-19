@@ -10,8 +10,10 @@ public:
     explicit GetId(SerialIO *ser, QObject *parent = nullptr);
     ~GetId();
 
-    void write() const;
     void read(const QByteArray &in) override;
+
+public slots:
+    void write() const;
 
 signals:
     void received(const QString &id);

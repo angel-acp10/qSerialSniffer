@@ -2,12 +2,12 @@
 #define SERIALIO_H
 
 #include <QSerialPort>
-#include <QThread>
+#include <QTimer>
 #include <QQueue>
 #include "Command.h"
 
 
-class SerialIO : public QThread
+class SerialIO : public QSerialPort
 {
     Q_OBJECT
 
@@ -15,8 +15,10 @@ public:
     explicit SerialIO(QObject *parent = nullptr);
     ~SerialIO();
 
-    bool open(const QString &portName, const int baudrate);
-    bool close();
+    typedef struct{
+        QByteArray txCmd;
+        Command *cmdPtr;
+    }request_t;
 
     void setTimeout(const int timeout);
     int getTimeout() const;
@@ -24,35 +26,46 @@ public:
     void setAttempts(const int attempts);
     int getAttempts() const;
 
+public slots:
     void addRequest(QByteArray &txCmd, Command *cmdPtr);
 
-signals:
-    void error(const QString &s);
-    void timeout(const QString &s);
+private slots:
+    void dequeueRequest();
+    void writeRequest();
+    void onWriteTimeout();
+    void onWrittenBytes(const qint64 bytes);
+    void onReadTimeout();
+    void onReadBytes();
+
+    void onError();
 
 private:
     typedef enum{
-        STAGE_CLOSED=0,
-        STAGE_KILL,
-        STAGE_DEQUEUE,
+        STAGE_IDLE=0,
         STAGE_WRITE,
         STAGE_READ
     }stage_t;
 
-    typedef struct{
-        QByteArray txCmd;
-        Command *cmdPtr;
-    }request_t;
+    int m_maxTimeout;
+    int m_maxAttempts;
 
-    void run() override;
-
-
-    QQueue<request_t> m_requests;
-    QSerialPort *m_serial;
+    int m_remainingAttempts;
     stage_t m_stage;
+    qint64 m_txLen;
+    qint64 m_rxLen;
+    QByteArray m_rxBuff;
 
-    int m_timeout;
-    int m_attempts;
+    QTimer * m_writeTimer;
+    QTimer * m_readTimer;
+
+    request_t m_currRequest;
+    QQueue<request_t> m_requests;
+
+signals:
+    void writeTimeout();
+    void readTimeout();
+    // custom error, qSerialPort already has an error signal
+
 };
 
 
