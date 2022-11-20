@@ -11,6 +11,7 @@ MainWindow::MainWindow(QWidget *parent)
       mSettingsDialog(new SettingsDialog(this)),
       mSerial(new SerialIO(this)),
       mCmds(new CommandManager(mSerial, this)),
+      mTStamp(new TimeStamp(this)),
       mPort(""),
       mSnifferBaudrate(9600),
       mSnifferParity("None"),
@@ -25,14 +26,12 @@ MainWindow::MainWindow(QWidget *parent)
     initButtons();
     initEncodingList();
 
-    //connect(ui->settings_pushButton, &QPushButton::clicked,
-            //mSettingsDialog, &SettingsDialog::exec);
-
-    connect(ui->settings_pushButton, &QPushButton::clicked, mCmds->getId, &GetId::write);
+    connect(mSettingsDialog, &SettingsDialog::settingsChanged,
+            this, &MainWindow::applySettings);
 
 
     connect(mCmds->getId, &GetId::received,
-            [this](QString id)
+            [this](GetId::Status, QString id)
             {
                 QMessageBox::information(this, "GetId response", id);
             });
@@ -62,14 +61,14 @@ void MainWindow::initButtons()
     ui->pause_pushButton->setDisabled(true);
     ui->play_pushButton->setEnabled(true);
 
-    connect(mSettingsDialog, &SettingsDialog::settingsChanged,
-            this, &MainWindow::applySettings);
+    connect(ui->settings_pushButton, &QPushButton::clicked,
+                mSettingsDialog, &SettingsDialog::exec);
 
-    connect(ui->play_pushButton, &QPushButton::clicked,
-            this, &MainWindow::play);
+    connect(ui->play_pushButton, &QPushButton::clicked, this, &MainWindow::play);
+    connect(ui->play_pushButton, &QPushButton::clicked, mTStamp, &TimeStamp::onPlayClicked);
 
-    connect(ui->pause_pushButton, &QPushButton::clicked,
-            this, &MainWindow::pause);
+    connect(ui->pause_pushButton, &QPushButton::clicked, this, &MainWindow::pause);
+    connect(ui->pause_pushButton, &QPushButton::clicked, mTStamp, &TimeStamp::onPauseClicked);
 }
 
 void MainWindow::initEncodingList()

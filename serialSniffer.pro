@@ -10,8 +10,11 @@ CONFIG += c++17
 
 SOURCES += \
     SettingsDialog.cpp \
+    TimeStamp.cpp \
     commands/Command.cpp \
     commands/CommandManager.cpp \
+    commands/DeInitUart.cpp \
+    commands/GetAllQueue.cpp \
     commands/GetId.cpp \
     commands/InitUart.cpp \
     commands/SerialIO.cpp \
@@ -21,8 +24,11 @@ SOURCES += \
 HEADERS += \
     MainWindow.h \
     SettingsDialog.h \
+    TimeStamp.h \
     commands/Command.h \
     commands/CommandManager.h \
+    commands/DeInitUart.h \
+    commands/GetAllQueue.h \
     commands/GetId.h \
     commands/InitUart.h \
     commands/SerialIO.h

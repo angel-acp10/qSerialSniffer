@@ -27,6 +27,7 @@ void GetId::write() const
 
 void GetId::read(const QByteArray &in)
 {
+    Status status = (Status)in[3];
     QString id = QString(in.mid(4, 25));
-    emit received(id);
+    emit received(status, id);
 }

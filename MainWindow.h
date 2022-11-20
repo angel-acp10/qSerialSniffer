@@ -7,7 +7,7 @@
 #include "SettingsDialog.h"
 #include "commands/SerialIO.h"
 #include "commands/CommandManager.h"
-
+#include "TimeStamp.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -39,8 +39,9 @@ private:
     SettingsDialog *mSettingsDialog;
     SerialIO *mSerial;
     CommandManager *mCmds;
-    QString mPort;
+    TimeStamp *mTStamp;
 
+    QString mPort;
     int mSnifferBaudrate;
     QString mSnifferParity;
     int mSnifferDataSize;
