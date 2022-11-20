@@ -3,17 +3,16 @@
 
 #include <QObject>
 #include <QByteArray>
-//#include "SerialIO.h"
 #include <stdint.h>
 
-class SerialIO;
+class CommandManager;
 
 class Command : public QObject
 {
     Q_OBJECT
 
 public:
-    explicit Command(SerialIO *ser, QObject *parent = nullptr);
+    explicit Command(CommandManager *cmd, QObject *parent = nullptr);
     ~Command();
 
     /**
@@ -38,12 +37,7 @@ signals:
     // void received(rx_arguments)
 
 protected:
-    void setHeader(QByteArray &buff, const uint8_t cmdIdx) const;
-    void setChecksum(QByteArray &buff) const;
-
-    bool verifyChecksum(const QByteArray &buff) const;
-
-    SerialIO *m_ser;
+    CommandManager *m_cmd;
 };
 
 #endif // COMMAND_H

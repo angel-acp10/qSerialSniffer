@@ -13,6 +13,7 @@ SOURCES += \
     commands/Command.cpp \
     commands/CommandManager.cpp \
     commands/GetId.cpp \
+    commands/InitUart.cpp \
     commands/SerialIO.cpp \
     main.cpp \
     MainWindow.cpp
@@ -23,6 +24,7 @@ HEADERS += \
     commands/Command.h \
     commands/CommandManager.h \
     commands/GetId.h \
+    commands/InitUart.h \
     commands/SerialIO.h
 
 FORMS += \

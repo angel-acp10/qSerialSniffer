@@ -10,16 +10,15 @@ SerialIO::SerialIO(QObject *parent) :
     m_stage(STAGE_IDLE),
     m_txLen(0),
     m_rxLen(0),
+    m_txBuff(),
     m_rxBuff(4000, 0),
-    m_writeTimer(new QTimer(parent)),
-    m_readTimer(new QTimer(parent)),
-    m_currRequest(),
-    m_requests()
+    m_writeTimer(QTimer(this)),
+    m_readTimer(QTimer(this))
 {
-    m_writeTimer->setSingleShot(true);
-    m_readTimer->setSingleShot(true);
-    connect(m_writeTimer, &QTimer::timeout, this, &SerialIO::onWriteTimeout);
-    connect(m_readTimer, &QTimer::timeout, this, &SerialIO::onReadTimeout);
+    m_writeTimer.setSingleShot(true);
+    m_readTimer.setSingleShot(true);
+    connect(&m_writeTimer, &QTimer::timeout, this, &SerialIO::onWriteTimeout);
+    connect(&m_readTimer, &QTimer::timeout, this, &SerialIO::onReadTimeout);
 
     connect(this, &QSerialPort::bytesWritten, this, &SerialIO::onWrittenBytes);
     connect(this, &QSerialPort::errorOccurred, this, &SerialIO::onError);
@@ -27,33 +26,19 @@ SerialIO::SerialIO(QObject *parent) :
 
 SerialIO::~SerialIO()
 {
-    if(m_requests.isEmpty() == false)
-        m_requests.clear();
 
 }
 
-void SerialIO::addRequest(QByteArray &txCmd, Command *cmdPtr)
+SerialIO::stage_t SerialIO::getStage() const
 {
-    request_t request = {
-        .txCmd = txCmd,
-        .cmdPtr = cmdPtr
-    };
-    m_requests.enqueue(request);
-
-    if(isOpen() && m_stage==STAGE_IDLE)
-    {
-        dequeueRequest();
-    }
+    return m_stage;
 }
 
-void SerialIO::dequeueRequest()
+void SerialIO::startRequest(QByteArray &txBuff)
 {
-    if(m_requests.length() > 0)
-    {
-        m_currRequest = m_requests.dequeue();
-        m_remainingAttempts = m_maxAttempts;
-        writeRequest();
-    }
+    m_txBuff = txBuff;
+    m_remainingAttempts = m_maxAttempts;
+    writeRequest();
 }
 
 void SerialIO::writeRequest()
@@ -62,9 +47,9 @@ void SerialIO::writeRequest()
 
     m_txLen = 0;
     m_remainingAttempts--;
-    write(m_currRequest.txCmd);
+    write(m_txBuff);
 
-    m_writeTimer->start(m_maxTimeout);
+    m_writeTimer.start(m_maxTimeout);
 }
 
 void SerialIO::onWriteTimeout()
@@ -74,23 +59,23 @@ void SerialIO::onWriteTimeout()
     else
     {
         m_stage = STAGE_IDLE;
-        dequeueRequest();
+        emit maxAttempts();
     }
 }
 
 void SerialIO::onWrittenBytes(const qint64 bytes)
 {
-    m_writeTimer->start(m_maxTimeout);
+    m_writeTimer.start(m_maxTimeout);
 
     m_txLen += bytes;
-    if(bytes >= m_currRequest.txCmd.length())
+    if(bytes >= m_txBuff.length())
     {
         // write completed
-        m_writeTimer->stop();
+        m_writeTimer.stop();
         m_rxLen = 0;
         m_stage = STAGE_READ;
         connect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
-        m_readTimer->start(m_maxTimeout);
+        m_readTimer.start(m_maxTimeout);
     }
 }
 
@@ -103,13 +88,13 @@ void SerialIO::onReadTimeout()
     else
     {
         m_stage = STAGE_IDLE;
-        dequeueRequest();
+        emit maxAttempts();
     }
 }
 
 void SerialIO::onReadBytes()
 {
-    m_readTimer->start(m_maxTimeout);
+    m_readTimer.start(m_maxTimeout);
 
     qint64 toRead = bytesAvailable();
     while(toRead != 0)
@@ -132,10 +117,9 @@ void SerialIO::onReadBytes()
         if ( m_rxLen >= cmdLength )
         {
             disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
-            m_readTimer->stop();
-            m_currRequest.cmdPtr->read(m_rxBuff.mid(0, cmdLength));
+            m_readTimer.stop();
+            emit replyReceived(m_rxBuff.mid(0, cmdLength)); // to slot processReply
             m_stage = STAGE_IDLE;
-            dequeueRequest();
         }
     }
 }
@@ -143,8 +127,7 @@ void SerialIO::onReadBytes()
 void SerialIO::onError()
 {
     disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
-    m_readTimer->stop();
-    m_writeTimer->stop();
+    m_readTimer.stop();
+    m_writeTimer.stop();
     m_stage = STAGE_IDLE;
-    m_requests.clear();
 }

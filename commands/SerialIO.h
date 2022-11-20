@@ -3,9 +3,6 @@
 
 #include <QSerialPort>
 #include <QTimer>
-#include <QQueue>
-#include "Command.h"
-
 
 class SerialIO : public QSerialPort
 {
@@ -15,10 +12,13 @@ public:
     explicit SerialIO(QObject *parent = nullptr);
     ~SerialIO();
 
-    typedef struct{
-        QByteArray txCmd;
-        Command *cmdPtr;
-    }request_t;
+    typedef enum{
+        STAGE_IDLE=0,
+        STAGE_WRITE,
+        STAGE_READ
+    }stage_t;
+
+    stage_t getStage() const;
 
     void setTimeout(const int timeout);
     int getTimeout() const;
@@ -27,10 +27,9 @@ public:
     int getAttempts() const;
 
 public slots:
-    void addRequest(QByteArray &txCmd, Command *cmdPtr);
+    void startRequest(QByteArray &txBuff);
 
 private slots:
-    void dequeueRequest();
     void writeRequest();
     void onWriteTimeout();
     void onWrittenBytes(const qint64 bytes);
@@ -40,12 +39,6 @@ private slots:
     void onError();
 
 private:
-    typedef enum{
-        STAGE_IDLE=0,
-        STAGE_WRITE,
-        STAGE_READ
-    }stage_t;
-
     int m_maxTimeout;
     int m_maxAttempts;
 
@@ -53,20 +46,18 @@ private:
     stage_t m_stage;
     qint64 m_txLen;
     qint64 m_rxLen;
+    QByteArray m_txBuff;
     QByteArray m_rxBuff;
 
-    QTimer * m_writeTimer;
-    QTimer * m_readTimer;
-
-    request_t m_currRequest;
-    QQueue<request_t> m_requests;
+    QTimer m_writeTimer;
+    QTimer m_readTimer;
 
 signals:
-    void writeTimeout();
-    void readTimeout();
+    void maxAttempts();
+    void replyReceived(const QByteArray reply);
     // custom error, qSerialPort already has an error signal
 
 };
 
 
-#endif // SERIALTHREAD_H
+#endif // SERIALIO_H

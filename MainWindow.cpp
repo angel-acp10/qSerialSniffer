@@ -37,20 +37,18 @@ MainWindow::MainWindow(QWidget *parent)
                 QMessageBox::information(this, "GetId response", id);
             });
 
-    connect(mSerial, &SerialIO::error,
-            [this]()
+    connect(mSerial, &QSerialPort::errorOccurred,
+            [this](QSerialPort::SerialPortError error)
             {
-                QMessageBox::critical(this, "SerialPort Error", "");
+                if(error == QSerialPort::NoError)
+                    return;
+                QString strError = QVariant::fromValue((QSerialPort::SerialPortError)error).toString();
+                QMessageBox::critical(this, "SerialPort Error", strError);
             });
-    connect(mSerial, &SerialIO::writeTimeout,
+    connect(mSerial, &SerialIO::maxAttempts,
             [this]()
             {
-                QMessageBox::critical(this, "SerialPort writeTimeout", "");
-            });
-    connect(mSerial, &SerialIO::readTimeout,
-            [this]()
-            {
-                QMessageBox::critical(this, "SerialPort readTimeout", "");
+                QMessageBox::critical(this, "SerialPort maxxAttempts", "");
             });
 }
 

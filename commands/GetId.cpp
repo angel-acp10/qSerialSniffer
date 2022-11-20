@@ -1,8 +1,8 @@
 #include "GetId.h"
-#include "SerialIO.h"
+#include "CommandManager.h"
 
-GetId::GetId(SerialIO *ser, QObject *parent)
-    : Command{ser, parent}
+GetId::GetId(CommandManager *cmd, QObject *parent)
+    : Command{cmd, parent}
 {
 }
 
@@ -18,18 +18,15 @@ void GetId::write() const
     out.resize(cmdLen);
 
     // cmd start
-    setHeader(out, 0x01);
-    setChecksum(out);
+    m_cmd->setHeader(out, 0x01);
+    m_cmd->setChecksum(out);
     // cmd end
 
-    m_ser->addRequest(out, (Command *)this);
+    m_cmd->addRequest(out, (Command *)this);
 }
 
 void GetId::read(const QByteArray &in)
 {
-    if(verifyChecksum(in) == false)
-        return; // checksum error
-
     QString id = QString(in.mid(4, 25));
     emit received(id);
 }

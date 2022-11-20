@@ -7,7 +7,7 @@ class GetId : public Command
 {
     Q_OBJECT
 public:
-    explicit GetId(SerialIO *ser, QObject *parent = nullptr);
+    explicit GetId(CommandManager *cmd, QObject *parent = nullptr);
     ~GetId();
 
     void read(const QByteArray &in) override;
