@@ -3,6 +3,7 @@
 
 #include "Command.h"
 #include "TimeStamp.h"
+#include "../model/Fragment.h"
 
 class GetAllQueue : public Command
 {
@@ -27,10 +28,13 @@ public slots:
 signals:
     void overflow(const GetAllQueue::Status);
     void emptyFragmentsQueue(const quint64 us);
-    void received();
+    void received(QList<Fragment> fragList);
 
 private:
     TimeStamp *m_tStamp;
+
+    void parseAllFragments(const QByteArray &in);
+    quint16 getFragment(const QByteArray &in, const int start, Fragment &outFrag) const;
 };
 
 #endif // GETALLQUEUE_H

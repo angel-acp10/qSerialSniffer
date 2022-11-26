@@ -12,7 +12,7 @@ GetId::~GetId()
 
 void GetId::write() const
 {
-    uint16_t cmdLen = 4;
+    quint32 cmdLen = 4;
     QByteArray out;
 
     out.resize(cmdLen);

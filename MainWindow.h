@@ -8,6 +8,7 @@
 #include "commands/SerialIO.h"
 #include "commands/CommandManager.h"
 #include "TimeStamp.h"
+#include <QTimer>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -24,6 +25,7 @@ public:
 private:
     void initButtons();
     void initEncodingList();
+    void initTableWidget();
 
 private slots:
     void applySettings(const QString &port,
@@ -38,9 +40,10 @@ private:
 
     SettingsDialog *mSettingsDialog;
     SerialIO *mSerial;
-    CommandManager *mCmds;
     TimeStamp *mTStamp;
-
+    CommandManager *mCmds;
+    QTimer *mTimer;
+    
     QString mPort;
     int mSnifferBaudrate;
     QString mSnifferParity;
@@ -49,5 +52,6 @@ private:
     QString mAliasB;
     QColor mColorA;
     QColor mColorB;
+
 };
 #endif // MAINWINDOW_H

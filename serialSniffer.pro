@@ -18,6 +18,7 @@ SOURCES += \
     commands/GetId.cpp \
     commands/InitUart.cpp \
     commands/SerialIO.cpp \
+    model/Fragment.cpp \
     main.cpp \
     MainWindow.cpp
 
@@ -31,7 +32,8 @@ HEADERS += \
     commands/GetAllQueue.h \
     commands/GetId.h \
     commands/InitUart.h \
-    commands/SerialIO.h
+    commands/SerialIO.h \
+    model/Fragment.h
 
 FORMS += \
     MainWindow.ui \

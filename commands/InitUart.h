@@ -34,7 +34,7 @@ public:
     void read(const QByteArray &in) override;
 
 public slots:
-    void write(const uint32_t baudrate,
+    void write(const quint32 baudrate,
                 const InitUart::DataSize dSize,
                 const InitUart::Parity parity,
                 const InitUart::Stop stop) const;

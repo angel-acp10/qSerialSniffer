@@ -8,18 +8,22 @@
 #include "Command.h"
 #include "GetId.h"
 #include "InitUart.h"
+#include "DeInitUart.h"
+#include "GetAllQueue.h"
 
 
 class CommandManager : public QObject
 {
     Q_OBJECT
 public:
-    explicit CommandManager(SerialIO *ser, QObject *parent = nullptr);
+    explicit CommandManager(SerialIO *ser, TimeStamp *tStamp, QObject *parent = nullptr);
     ~CommandManager();
 
     // commands
     GetId *getId;
     InitUart *initUart;
+    DeInitUart *deInitUart;
+    GetAllQueue *getAllQueue;
 
     // auxiliar functions for "Commands" subclasses
     void setHeader(QByteArray &buff, const uint8_t cmdIdx) const;
