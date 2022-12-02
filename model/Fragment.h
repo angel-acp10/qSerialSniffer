@@ -24,7 +24,7 @@ public:
     quint64 getEndAcumUs() const;
     void setEndAcumUs(const quint64 endAcumUs);
 
-    QByteArray& getData();
+    QByteArray getData() const;
     void setData(const QByteArray& data);
 
 

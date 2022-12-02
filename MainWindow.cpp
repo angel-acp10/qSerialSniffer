@@ -14,6 +14,7 @@ MainWindow::MainWindow(QWidget *parent)
       mTStamp0(new TimeStamp(this)),
       mTStamp1(new TimeStamp(this)),
       mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
+      mFragModel(new FragmentsModel(this)),
       mTimer(new QTimer),
 
       mPort(""),
@@ -55,6 +56,8 @@ MainWindow::MainWindow(QWidget *parent)
             {
                 for(auto frag : lst)
                 {
+                    mFragModel->appendFragment(frag);
+                    /*
                     ui->received_tableWidget->insertRow( ui->received_tableWidget->rowCount() );
                     ui->received_tableWidget->setItem( ui->received_tableWidget->rowCount()-1,
                                                        0, new QTableWidgetItem( QString("%1").arg(frag.getStartAcumUs()) ));
@@ -64,6 +67,7 @@ MainWindow::MainWindow(QWidget *parent)
                                                        2, new QTableWidgetItem( QString("%1").arg((int)frag.getPort()) ));
                     ui->received_tableWidget->setItem( ui->received_tableWidget->rowCount()-1,
                                                        3, new QTableWidgetItem( QString(frag.getData()) ));
+                                                       */
                 }
             });
 
@@ -103,8 +107,9 @@ void MainWindow::initEncodingList()
 
 void MainWindow::initTableWidget()
 {
-    ui->received_tableWidget->setColumnCount(4);
-    ui->received_tableWidget->setRowCount(0);
+    ui->received_tableView->setModel(mFragModel);
+    //ui->received_tableWidget->setColumnCount(4);
+    //ui->received_tableWidget->setRowCount(0);
 }
 
 void MainWindow::applySettings(const QString &port,

@@ -10,6 +10,8 @@
 #include "TimeStamp.h"
 #include <QTimer>
 
+#include "model/FragmentsModel.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -43,6 +45,7 @@ private:
     TimeStamp *mTStamp0;
     TimeStamp *mTStamp1;
     CommandManager *mCmds;
+    FragmentsModel *mFragModel;
     QTimer *mTimer;
     
     QString mPort;

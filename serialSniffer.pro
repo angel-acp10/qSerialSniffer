@@ -20,7 +20,8 @@ SOURCES += \
     commands/SerialIO.cpp \
     model/Fragment.cpp \
     main.cpp \
-    MainWindow.cpp
+    MainWindow.cpp \
+    model/FragmentsModel.cpp
 
 HEADERS += \
     MainWindow.h \
@@ -33,7 +34,8 @@ HEADERS += \
     commands/GetId.h \
     commands/InitUart.h \
     commands/SerialIO.h \
-    model/Fragment.h
+    model/Fragment.h \
+    model/FragmentsModel.h
 
 FORMS += \
     MainWindow.ui \

@@ -37,7 +37,7 @@ void Fragment::setEndAcumUs(const quint64 endAcumUs)
     m_endAcumUs = endAcumUs;
 }
 
-QByteArray& Fragment::getData()
+QByteArray Fragment::getData() const
 {
     return m_data;
 }
