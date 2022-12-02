@@ -29,12 +29,15 @@ quint64 TimeStamp::rawToUs(const quint32 ts_raw) const
 quint64 TimeStamp::deltaUs(const quint64 prevTs_us, const quint64 ts_us) const
 {
     quint64 delta;
+    quint64 maxUs;
 
     if(ts_us >= prevTs_us)
         delta = ts_us - prevTs_us;
     else
     {
-        delta = std::numeric_limits<quint16>::max() - prevTs_us;
+        maxUs = (quint64)std::numeric_limits<quint16>::max()*100*1000; // maximum tenths of second in us
+        maxUs += 100000; // + max us
+        delta = maxUs - prevTs_us;
         delta += (ts_us + 1);
     }
     return delta;

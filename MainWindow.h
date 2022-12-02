@@ -40,7 +40,8 @@ private:
 
     SettingsDialog *mSettingsDialog;
     SerialIO *mSerial;
-    TimeStamp *mTStamp;
+    TimeStamp *mTStamp0;
+    TimeStamp *mTStamp1;
     CommandManager *mCmds;
     QTimer *mTimer;
     

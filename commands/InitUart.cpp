@@ -27,8 +27,8 @@ void InitUart::write(const uint32_t baudrate,
     out[5] = (char)((baudrate&0x0000FF00)>>8);
     out[6] = (char) (baudrate&0x000000FF);
     out[7] = (char)dSize;
-    out[7] |= (char)parity;
-    out[7] |= (char)stop;
+    out[7] = out[7] | (char)parity;
+    out[7] = out[7] | (char)stop;
     out[8] = (char)0x00; // clock - unused
     m_cmd->setChecksum(out); // byte 9
     // cmd end

@@ -10,9 +10,10 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       mSettingsDialog(new SettingsDialog(this)),
-      mSerial(new SerialIO(this)),
-      mTStamp(new TimeStamp(this)),
-      mCmds(new CommandManager(mSerial, mTStamp, this)),
+      mSerial(new SerialIO(100, 3, this)), ///////// to be modified
+      mTStamp0(new TimeStamp(this)),
+      mTStamp1(new TimeStamp(this)),
+      mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
       mTimer(new QTimer),
 
       mPort(""),
@@ -25,6 +26,8 @@ MainWindow::MainWindow(QWidget *parent)
       mColorB(QColor("black"))
 {
     ui->setupUi(this);
+
+    mSerial->start(); ///////// to be modified
 
     initButtons();
     initEncodingList();
@@ -40,27 +43,16 @@ MainWindow::MainWindow(QWidget *parent)
                 QMessageBox::information(this, "GetId response", id);
             });
 
-    connect(mSerial, &QSerialPort::errorOccurred,
-            [this](QSerialPort::SerialPortError error)
-            {
-                if(error == QSerialPort::NoError)
-                    return;
-                QString strError = QVariant::fromValue((QSerialPort::SerialPortError)error).toString();
-                QMessageBox::critical(this, "SerialPort Error", strError);
-            });
+    /*
     connect(mSerial, &SerialIO::maxAttempts,
             [this]()
             {
                 QMessageBox::critical(this, "SerialPort maxxAttempts", "");
             });
-
+*/
     connect(mCmds->getAllQueue, &GetAllQueue::received,
             [this](QList<Fragment> lst)
             {
-                /*
-
-                    QMessageBox::information(this, "GetAllQueue", QString(f.getData()) );
-                    */
                 for(auto frag : lst)
                 {
                     ui->received_tableWidget->insertRow( ui->received_tableWidget->rowCount() );
@@ -95,10 +87,12 @@ void MainWindow::initButtons()
                 mSettingsDialog, &SettingsDialog::exec);
 
     connect(ui->play_pushButton, &QPushButton::clicked, this, &MainWindow::play);
-    connect(ui->play_pushButton, &QPushButton::clicked, mTStamp, &TimeStamp::onPlayClicked);
+    connect(ui->play_pushButton, &QPushButton::clicked, mTStamp0, &TimeStamp::onPlayClicked);
+    connect(ui->play_pushButton, &QPushButton::clicked, mTStamp1, &TimeStamp::onPlayClicked);
 
     connect(ui->pause_pushButton, &QPushButton::clicked, this, &MainWindow::pause);
-    connect(ui->pause_pushButton, &QPushButton::clicked, mTStamp, &TimeStamp::onPauseClicked);
+    connect(ui->pause_pushButton, &QPushButton::clicked, mTStamp0, &TimeStamp::onPauseClicked);
+    connect(ui->pause_pushButton, &QPushButton::clicked, mTStamp1, &TimeStamp::onPauseClicked);
 }
 
 void MainWindow::initEncodingList()
@@ -144,9 +138,9 @@ void MainWindow::play()
     ui->play_pushButton->setDisabled(true);
     ui->pause_pushButton->setEnabled(true);
 
-    mSerial->setPortName("COM6");//mPort);
-    mSerial->setBaudRate(115200);
-    mSerial->open(QIODevice::ReadWrite);
+    //mSerial->setPortName("COM6");//mPort);         ///////// to be modified
+    //mSerial->setBaudRate(115200);
+    //mSerial->open(QIODevice::ReadWrite);
 
     mCmds->initUart->write(115200,
                            InitUart::DataSize::DATASIZE_8bits,
@@ -162,6 +156,6 @@ void MainWindow::pause()
     mCmds->deInitUart->write();
     ui->pause_pushButton->setDisabled(true);
     ui->play_pushButton->setEnabled(true);
-    mSerial->close();
+    //mSerial->close();                    ///////// to be modified
 }
 

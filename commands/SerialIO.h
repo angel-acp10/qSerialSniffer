@@ -1,62 +1,53 @@
 #ifndef SERIALIO_H
 #define SERIALIO_H
 
-#include <QSerialPort>
-#include <QTimer>
+#include <QMutex>
+#include <QThread>
+#include <QWaitCondition>
 
-class SerialIO : public QSerialPort
+
+class SerialIO : public QThread
 {
     Q_OBJECT
 
 public:
-    explicit SerialIO(QObject *parent = nullptr);
-    ~SerialIO();
-
-    typedef enum{
-        STAGE_IDLE=0,
+    typedef enum
+    {
+        STAGE_OFF=0,
+        STAGE_IDLE,
         STAGE_WRITE,
         STAGE_READ
     }stage_t;
 
+    explicit SerialIO(int timeout, int attempts, QObject *parent = nullptr);
+    ~SerialIO();
+
     stage_t getStage() const;
 
-    void setTimeout(const int timeout);
-    int getTimeout() const;
-
-    void setAttempts(const int attempts);
-    int getAttempts() const;
-
 public slots:
-    void startRequest(QByteArray &txBuff);
-
-private slots:
-    void writeRequest();
-    void onWriteTimeout();
-    void onWrittenBytes(const qint64 bytes);
-    void onReadTimeout();
-    void onReadBytes();
-
-    void onError();
-
-private:
-    int m_maxTimeout;
-    int m_maxAttempts;
-
-    int m_remainingAttempts;
-    stage_t m_stage;
-    qint64 m_txLen;
-    qint64 m_rxLen;
-    QByteArray m_txBuff;
-    QByteArray m_rxBuff;
-
-    QTimer m_writeTimer;
-    QTimer m_readTimer;
+    void startRequest(/*const QString &portName,*/ const QByteArray &request);
 
 signals:
+    void replyReceived(const QByteArray &response);
+    void error(const QString &s);
     void maxAttempts();
-    void replyReceived(const QByteArray reply);
-    // custom error, qSerialPort already has an error signal
 
+private:
+
+
+    void run() override;
+
+    stage_t m_stage;
+    int m_timeout;
+    int m_attempts;
+    bool m_quit;
+    bool m_newRequest;
+
+
+    QString m_portName;
+    QByteArray m_request;
+    QMutex m_mutex;
+    QWaitCondition m_cond;
 };
 
 

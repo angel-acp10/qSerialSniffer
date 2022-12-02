@@ -1,32 +1,28 @@
 #include "SerialIO.h"
-#include <QTimer>
+
+#include <QSerialPort>
+#include <QTime>
+#include <QDebug>
 
 
-SerialIO::SerialIO(QObject *parent) :
-    QSerialPort(parent),
-    m_maxTimeout(50),
-    m_maxAttempts(3),
-    m_remainingAttempts(3),
-    m_stage(STAGE_IDLE),
-    m_txLen(0),
-    m_rxLen(0),
-    m_txBuff(),
-    m_rxBuff(4000, 0),
-    m_writeTimer(QTimer(this)),
-    m_readTimer(QTimer(this))
+SerialIO::SerialIO(int timeout, int attempts, QObject *parent) :
+    QThread(parent),
+    m_stage(STAGE_OFF),
+    m_timeout(timeout),
+    m_attempts(attempts),
+    m_quit(false),
+    m_newRequest(false)
 {
-    m_writeTimer.setSingleShot(true);
-    m_readTimer.setSingleShot(true);
-    connect(&m_writeTimer, &QTimer::timeout, this, &SerialIO::onWriteTimeout);
-    connect(&m_readTimer, &QTimer::timeout, this, &SerialIO::onReadTimeout);
-
-    connect(this, &QSerialPort::bytesWritten, this, &SerialIO::onWrittenBytes);
-    connect(this, &QSerialPort::errorOccurred, this, &SerialIO::onError);
 }
+
 
 SerialIO::~SerialIO()
 {
-
+    m_mutex.lock();
+    m_quit = true;
+    m_cond.wakeOne();
+    m_mutex.unlock();
+    wait();
 }
 
 SerialIO::stage_t SerialIO::getStage() const
@@ -34,100 +30,128 @@ SerialIO::stage_t SerialIO::getStage() const
     return m_stage;
 }
 
-void SerialIO::startRequest(QByteArray &txBuff)
+void SerialIO::startRequest(/*const QString &portName,*/ const QByteArray &request)
 {
-    m_txBuff = txBuff;
-    m_remainingAttempts = m_maxAttempts;
-    writeRequest();
-}
 
-void SerialIO::writeRequest()
-{
-    m_stage = STAGE_WRITE;
+    const QMutexLocker locker(&m_mutex);
+    //m_portName = portName;
+    m_request = request;
+    m_newRequest = true;
 
-    m_txLen = 0;
-    m_remainingAttempts--;
-    write(m_txBuff);
-
-    m_writeTimer.start(m_maxTimeout);
-}
-
-void SerialIO::onWriteTimeout()
-{
-    if(m_remainingAttempts > 0)
-        writeRequest();
+    if (!isRunning())
+        start();
     else
-    {
-        m_stage = STAGE_IDLE;
-        emit maxAttempts();
-    }
+        m_cond.wakeOne();
 }
 
-void SerialIO::onWrittenBytes(const qint64 bytes)
+
+void SerialIO::run()
 {
-    m_writeTimer.start(m_maxTimeout);
+    m_mutex.lock();
+    QByteArray currRequest = m_request;
+    m_mutex.unlock();
+    QByteArray response;
+    //stage_t stage = STAGE_IDLE;
 
-    m_txLen += bytes;
-    if(bytes >= m_txBuff.length())
+    QSerialPort serial;
+    serial.setPortName("COM6");
+    serial.setBaudRate( 115200 );
+    //serial.setDataBits( QSerialPort::Data8 );
+    //serial.setParity( QSerialPort::NoParity );
+    //serial.setStopBits( QSerialPort::OneStop );
+    serial.open(QIODevice::ReadWrite);
+    m_mutex.lock();
+    m_stage = STAGE_IDLE;
+    m_mutex.unlock();
+    int id = 0;
+    uint16_t cmdLength;
+    bool debug = true;
+
+    while (!m_quit)
     {
-        // write completed
-        m_writeTimer.stop();
-        m_rxLen = 0;
-        m_stage = STAGE_READ;
-        connect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
-        m_readTimer.start(m_maxTimeout);
-    }
-}
-
-void SerialIO::onReadTimeout()
-{
-    disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
-
-    if(m_remainingAttempts > 0)
-        writeRequest();
-    else
-    {
-        m_stage = STAGE_IDLE;
-        emit maxAttempts();
-    }
-}
-
-void SerialIO::onReadBytes()
-{
-    m_readTimer.start(m_maxTimeout);
-
-    qint64 toRead = bytesAvailable();
-    while(toRead != 0)
-    {
-        // does the response fit?
-        if((m_rxLen + toRead) > m_rxBuff.length())
-            m_rxBuff.resize(m_rxLen + toRead);
-
-        // copies response to rxBuff
-        read( &m_rxBuff[m_rxLen], toRead );
-        m_rxLen += toRead;
-        toRead = bytesAvailable();
-    }
-
-    // check if the received response is completed
-    // 2nd and 3rd byte indicates the remaining bytes of the response
-    if ( m_rxLen >= 3)
-    {
-        uint16_t cmdLength = (((uint16_t)m_rxBuff[1]<<8)|(m_rxBuff[2])) + 3;
-        if ( m_rxLen >= cmdLength )
+        switch(m_stage)
         {
-            disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
-            m_readTimer.stop();
-            emit replyReceived(m_rxBuff.mid(0, cmdLength)); // to slot processReply
-            m_stage = STAGE_IDLE;
+        case STAGE_IDLE:
+            this->msleep(10);
+
+            m_mutex.lock();
+            if(m_newRequest)
+            {
+                id++;
+                if(debug) qDebug()<<"id:"<<id;
+                m_newRequest = false;
+                currRequest = m_request;
+                m_stage = STAGE_WRITE;
+            }
+            m_mutex.unlock();
+            break;
+
+        case STAGE_WRITE:
+            serial.clear();  // clear rx and tx buffers
+            if (serial.write(currRequest) == -1)
+            {
+                m_mutex.lock();
+                m_stage = STAGE_IDLE;
+                m_mutex.unlock();
+                //emit error(tr("Failed to write on COM port. An error occurred"));
+                if(debug) qDebug()<<"id:"<<id<<" Failed to write on COM port. An error occurred";
+                break;
+            }
+            if (serial.waitForBytesWritten(m_timeout) == false)
+            {
+                m_mutex.lock();
+                m_stage = STAGE_IDLE;
+                m_mutex.unlock();
+                //emit this->timeout(tr("Write timeout."));
+                if(debug) qDebug()<<"id:"<<id<<" Write timeout";
+                break;
+            }
+            m_mutex.lock();
+            m_stage = STAGE_READ;
+            m_mutex.unlock();
+            response.clear();
+            //this->msleep(100);
+            break;
+
+        case STAGE_READ:
+            if (serial.waitForReadyRead(m_timeout) == false)
+            {
+                m_mutex.lock();
+                m_stage = STAGE_IDLE;
+                m_mutex.unlock();
+                if(debug) qDebug()<<serial.error();
+                //emit this->timeout(tr("Read timeout."));
+                if(debug) qDebug()<<"id:"<<id<<" Read timeout";
+                break;
+            }
+
+            response += serial.readAll();
+
+            if ( response.size() >= 3)
+            {
+                cmdLength = (response[1]<<8)&0xFF00;
+                cmdLength = cmdLength | (response[2]&0x00FF);
+                cmdLength += 3;
+                //cmdLength = (((uint16_t)response[1]<<8)|(response[2])) + 3;
+                if(debug) qDebug()<<"id:"<<id<<" >3 SIZE::"<<response.size()<<" cmdLength="<<cmdLength;
+
+                if ( response.size() >= cmdLength ) // check if all command bytes were received
+                {
+                    if(debug) qDebug()<<"id:"<<id<<" emit replyReceived";
+                    if(debug) qDebug()<<response.toHex(':');
+                    emit this->replyReceived(response);
+                    m_mutex.lock();
+                    m_stage = STAGE_IDLE;
+                    m_mutex.unlock();
+                }
+            }
+            break;
+
+        default:
+            break;
         }
     }
-}
-
-void SerialIO::onError()
-{
-    disconnect(this, &QSerialPort::readyRead, this, &SerialIO::onReadBytes);
-    m_readTimer.stop();
-    m_writeTimer.stop();
-    m_stage = STAGE_IDLE;
+    if(serial.isOpen())
+        serial.close();
+    this->msleep(100);
 }

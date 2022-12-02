@@ -1,11 +1,11 @@
 #include "CommandManager.h"
 
-CommandManager::CommandManager(SerialIO *ser, TimeStamp *tStamp, QObject *parent)
+CommandManager::CommandManager(SerialIO *ser, TimeStamp *tStamp0, TimeStamp *tStamp1, QObject *parent)
     : QObject{parent},
       getId(new GetId(this, this)),
       initUart(new InitUart(this, this)),
       deInitUart(new DeInitUart(this, this)),
-      getAllQueue(new GetAllQueue(this, tStamp, this)),
+      getAllQueue(new GetAllQueue(this, tStamp0, tStamp1, this)),
       m_ser(ser),
       m_requests(),
       m_currRequest()
@@ -27,13 +27,13 @@ void CommandManager::addRequest(QByteArray &txCmd, Command *cmdPtr)
         .txCmd = txCmd,
         .cmdPtr = cmdPtr
     };
-    if(m_ser->isOpen())
-    {
-        m_requests.enqueue(request);
-        
-        if(m_ser->getStage()==SerialIO::STAGE_IDLE)
-                dequeueRequest();
-    }
+    //if(m_ser->isOpen())   ///////////// to be modified
+    //{
+    m_requests.enqueue(request);
+
+    if(m_ser->getStage()==SerialIO::STAGE_IDLE)
+            dequeueRequest();
+    //}
 }
 
 void CommandManager::dequeueRequest() // slot
