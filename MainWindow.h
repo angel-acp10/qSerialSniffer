@@ -10,7 +10,8 @@
 #include "TimeStamp.h"
 #include <QTimer>
 
-#include "model/FragmentsModel.h"
+#include "table/FragmentsModel.h"
+#include "table/EncodingDelegate.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -46,6 +47,7 @@ private:
     TimeStamp *mTStamp1;
     CommandManager *mCmds;
     FragmentsModel *mFragModel;
+    EncodingDelegate *mEncDelegate;
     QTimer *mTimer;
     
     QString mPort;

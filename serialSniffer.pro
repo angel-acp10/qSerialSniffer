@@ -18,10 +18,12 @@ SOURCES += \
     commands/GetId.cpp \
     commands/InitUart.cpp \
     commands/SerialIO.cpp \
-    model/Fragment.cpp \
+    table/EncodingDelegate.cpp \
+    table/Fragment.cpp \
     main.cpp \
     MainWindow.cpp \
-    model/FragmentsModel.cpp
+    table/FragmentsModel.cpp \
+    table/TimeDelegate.cpp
 
 HEADERS += \
     MainWindow.h \
@@ -34,8 +36,10 @@ HEADERS += \
     commands/GetId.h \
     commands/InitUart.h \
     commands/SerialIO.h \
-    model/Fragment.h \
-    model/FragmentsModel.h
+    table/EncodingDelegate.h \
+    table/Fragment.h \
+    table/FragmentsModel.h \
+    table/TimeDelegate.h
 
 FORMS += \
     MainWindow.ui \

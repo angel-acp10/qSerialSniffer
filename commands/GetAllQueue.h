@@ -3,7 +3,7 @@
 
 #include "Command.h"
 #include "TimeStamp.h"
-#include "../model/Fragment.h"
+#include "../table/Fragment.h"
 
 class GetAllQueue : public Command
 {

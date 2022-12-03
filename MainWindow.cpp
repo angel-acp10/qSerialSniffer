@@ -4,7 +4,7 @@
 #include <QMetaEnum>
 #include <QMessageBox>
 #include <QDateTime>
-#include "model/Fragment.h"
+#include "table/Fragment.h"
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
@@ -15,6 +15,7 @@ MainWindow::MainWindow(QWidget *parent)
       mTStamp1(new TimeStamp(this)),
       mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
       mFragModel(new FragmentsModel(this)),
+      mEncDelegate(new EncodingDelegate(this)),
       mTimer(new QTimer),
 
       mPort(""),
@@ -107,6 +108,7 @@ void MainWindow::initEncodingList()
 
 void MainWindow::initTableWidget()
 {
+    ui->received_tableView->setItemDelegateForColumn(3, mEncDelegate);
     ui->received_tableView->setModel(mFragModel);
     //ui->received_tableWidget->setColumnCount(4);
     //ui->received_tableWidget->setRowCount(0);
