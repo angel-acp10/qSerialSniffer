@@ -4,6 +4,7 @@
 #include <QMetaEnum>
 #include <QMessageBox>
 #include <QDateTime>
+#include <QFontDatabase>
 #include "table/Fragment.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -15,6 +16,8 @@ MainWindow::MainWindow(QWidget *parent)
       mTStamp1(new TimeStamp(this)),
       mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
       mFragModel(new FragmentsModel(this)),
+      mTimeDelegate(new TimeDelegate(this)),
+      mIdDelegate(new IdDelegate(this)),
       mEncDelegate(new EncodingDelegate(this)),
       mTimer(new QTimer),
 
@@ -58,22 +61,8 @@ MainWindow::MainWindow(QWidget *parent)
                 for(auto frag : lst)
                 {
                     mFragModel->appendFragment(frag);
-                    /*
-                    ui->received_tableWidget->insertRow( ui->received_tableWidget->rowCount() );
-                    ui->received_tableWidget->setItem( ui->received_tableWidget->rowCount()-1,
-                                                       0, new QTableWidgetItem( QString("%1").arg(frag.getStartAcumUs()) ));
-                    ui->received_tableWidget->setItem( ui->received_tableWidget->rowCount()-1,
-                                                       1, new QTableWidgetItem( QString("%1").arg(frag.getEndAcumUs()) ));
-                    ui->received_tableWidget->setItem( ui->received_tableWidget->rowCount()-1,
-                                                       2, new QTableWidgetItem( QString("%1").arg((int)frag.getPort()) ));
-                    ui->received_tableWidget->setItem( ui->received_tableWidget->rowCount()-1,
-                                                       3, new QTableWidgetItem( QString(frag.getData()) ));
-                                                       */
                 }
             });
-
-
-    //connect(ui->test_pushButton, &QPushButton::clicked, mCmds->getAllQueue, &GetAllQueue::write);
 
     connect(mTimer, &QTimer::timeout, mCmds->getAllQueue, &GetAllQueue::write);
 }
@@ -87,6 +76,7 @@ void MainWindow::initButtons()
 {
     ui->pause_pushButton->setDisabled(true);
     ui->play_pushButton->setEnabled(true);
+    ui->settings_pushButton->setEnabled(true);
 
     connect(ui->settings_pushButton, &QPushButton::clicked,
                 mSettingsDialog, &SettingsDialog::exec);
@@ -108,10 +98,22 @@ void MainWindow::initEncodingList()
 
 void MainWindow::initTableWidget()
 {
+    mIdDelegate->setId2("PC");
+    mIdDelegate->setId3("MCU");
+    ui->received_tableView->setItemDelegateForColumn(0, mTimeDelegate);
+    ui->received_tableView->setItemDelegateForColumn(1, mTimeDelegate);
+    ui->received_tableView->setItemDelegateForColumn(2, mIdDelegate);
     ui->received_tableView->setItemDelegateForColumn(3, mEncDelegate);
     ui->received_tableView->setModel(mFragModel);
-    //ui->received_tableWidget->setColumnCount(4);
-    //ui->received_tableWidget->setRowCount(0);
+    ui->received_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+
+    //ui->received_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->received_tableView->horizontalHeader()->setStretchLastSection(true);
+
+    //const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
+    QFont fixedFont("Monospace");
+    fixedFont.setStyleHint(QFont::TypeWriter);
+    ui->received_tableView->setFont(fixedFont);
 }
 
 void MainWindow::applySettings(const QString &port,
@@ -144,6 +146,7 @@ void MainWindow::play()
 {
     ui->play_pushButton->setDisabled(true);
     ui->pause_pushButton->setEnabled(true);
+    ui->settings_pushButton->setDisabled(true);
 
     //mSerial->setPortName("COM6");//mPort);         ///////// to be modified
     //mSerial->setBaudRate(115200);
@@ -163,6 +166,7 @@ void MainWindow::pause()
     mCmds->deInitUart->write();
     ui->pause_pushButton->setDisabled(true);
     ui->play_pushButton->setEnabled(true);
+    ui->settings_pushButton->setEnabled(true);
     //mSerial->close();                    ///////// to be modified
 }
 

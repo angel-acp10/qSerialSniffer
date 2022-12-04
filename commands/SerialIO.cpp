@@ -54,7 +54,7 @@ void SerialIO::run()
     //stage_t stage = STAGE_IDLE;
 
     QSerialPort serial;
-    serial.setPortName("COM6");
+    serial.setPortName("COM4");
     serial.setBaudRate( 115200 );
     //serial.setDataBits( QSerialPort::Data8 );
     //serial.setParity( QSerialPort::NoParity );

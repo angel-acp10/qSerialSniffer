@@ -11,6 +11,8 @@
 #include <QTimer>
 
 #include "table/FragmentsModel.h"
+#include "table/TimeDelegate.h"
+#include "table/IdDelegate.h"
 #include "table/EncodingDelegate.h"
 
 QT_BEGIN_NAMESPACE
@@ -47,6 +49,8 @@ private:
     TimeStamp *mTStamp1;
     CommandManager *mCmds;
     FragmentsModel *mFragModel;
+    TimeDelegate *mTimeDelegate;
+    IdDelegate *mIdDelegate;
     EncodingDelegate *mEncDelegate;
     QTimer *mTimer;
     

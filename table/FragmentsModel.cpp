@@ -41,5 +41,18 @@ QVariant FragmentsModel::data(const QModelIndex &index, int role) const
 
 QVariant FragmentsModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
-    return QVariant();
+    if(role != Qt::DisplayRole)
+        return QVariant();
+
+    if(orientation != Qt::Horizontal)
+        return QVariant();
+
+    switch(section)
+    {
+    case 0:     return QString("Start TS");
+    case 1:     return QString("End TS");
+    case 2:     return QString("ID");
+    case 3:     return QString("Data");
+    default:    return QVariant();
+    }
 }

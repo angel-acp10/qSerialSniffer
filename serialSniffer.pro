@@ -23,6 +23,7 @@ SOURCES += \
     main.cpp \
     MainWindow.cpp \
     table/FragmentsModel.cpp \
+    table/IdDelegate.cpp \
     table/TimeDelegate.cpp
 
 HEADERS += \
@@ -39,6 +40,7 @@ HEADERS += \
     table/EncodingDelegate.h \
     table/Fragment.h \
     table/FragmentsModel.h \
+    table/IdDelegate.h \
     table/TimeDelegate.h
 
 FORMS += \

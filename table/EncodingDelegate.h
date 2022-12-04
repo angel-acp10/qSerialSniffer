@@ -15,6 +15,7 @@ public:
 private:
     int m_encoding;
 
+    QString showAsAsciiHex(const QByteArray &arr) const;
     QString showAsHex(const QByteArray &arr) const;
     QString showAsDec(const QByteArray &arr) const;
     QString showAsBin(const QByteArray &arr) const;
