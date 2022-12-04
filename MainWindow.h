@@ -15,6 +15,9 @@
 #include "table/IdDelegate.h"
 #include "table/EncodingDelegate.h"
 
+#include "SearchWidget.h"
+#include "FilteredWidget.h"
+
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
 QT_END_NAMESPACE
@@ -31,6 +34,7 @@ private:
     void initButtons();
     void initEncodingList();
     void initTableWidget();
+    void initDocks();
 
 private slots:
     void applySettings(const QString &port,
@@ -53,6 +57,11 @@ private:
     IdDelegate *mIdDelegate;
     EncodingDelegate *mEncDelegate;
     QTimer *mTimer;
+
+    QDockWidget *mSearchDock;
+    QDockWidget *mFilteredDock;
+    SearchWidget *mSearchWidget;
+    FilteredWidget *mFilteredWidget;
     
     QString mPort;
     int mSnifferBaudrate;

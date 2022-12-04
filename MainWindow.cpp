@@ -7,6 +7,8 @@
 #include <QFontDatabase>
 #include "table/Fragment.h"
 
+#include <QDockWidget>
+
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
@@ -20,6 +22,11 @@ MainWindow::MainWindow(QWidget *parent)
       mIdDelegate(new IdDelegate(this)),
       mEncDelegate(new EncodingDelegate(this)),
       mTimer(new QTimer),
+
+      mSearchDock(new QDockWidget("Search", this)),
+      mFilteredDock(new QDockWidget("Filtered Terminal", this)),
+      mSearchWidget(new SearchWidget(mSearchDock)),
+      mFilteredWidget(new FilteredWidget(mFilteredDock)),
 
       mPort(""),
       mSnifferBaudrate(9600),
@@ -37,6 +44,7 @@ MainWindow::MainWindow(QWidget *parent)
     initButtons();
     initEncodingList();
     initTableWidget();
+    initDocks();
 
     connect(mSettingsDialog, &SettingsDialog::settingsChanged,
             this, &MainWindow::applySettings);
@@ -74,20 +82,20 @@ MainWindow::~MainWindow()
 
 void MainWindow::initButtons()
 {
-    ui->pause_pushButton->setDisabled(true);
-    ui->play_pushButton->setEnabled(true);
-    ui->settings_pushButton->setEnabled(true);
+    ui->pause_toolButton->setDisabled(true);
+    ui->play_toolButton->setEnabled(true);
+    ui->settings_toolButton->setEnabled(true);
 
-    connect(ui->settings_pushButton, &QPushButton::clicked,
+    connect(ui->settings_toolButton, &QToolButton::clicked,
                 mSettingsDialog, &SettingsDialog::exec);
 
-    connect(ui->play_pushButton, &QPushButton::clicked, this, &MainWindow::play);
-    connect(ui->play_pushButton, &QPushButton::clicked, mTStamp0, &TimeStamp::onPlayClicked);
-    connect(ui->play_pushButton, &QPushButton::clicked, mTStamp1, &TimeStamp::onPlayClicked);
+    connect(ui->play_toolButton, &QToolButton::clicked, this, &MainWindow::play);
+    connect(ui->play_toolButton, &QToolButton::clicked, mTStamp0, &TimeStamp::onPlayClicked);
+    connect(ui->play_toolButton, &QToolButton::clicked, mTStamp1, &TimeStamp::onPlayClicked);
 
-    connect(ui->pause_pushButton, &QPushButton::clicked, this, &MainWindow::pause);
-    connect(ui->pause_pushButton, &QPushButton::clicked, mTStamp0, &TimeStamp::onPauseClicked);
-    connect(ui->pause_pushButton, &QPushButton::clicked, mTStamp1, &TimeStamp::onPauseClicked);
+    connect(ui->pause_toolButton, &QToolButton::clicked, this, &MainWindow::pause);
+    connect(ui->pause_toolButton, &QToolButton::clicked, mTStamp0, &TimeStamp::onPauseClicked);
+    connect(ui->pause_toolButton, &QToolButton::clicked, mTStamp1, &TimeStamp::onPauseClicked);
 }
 
 void MainWindow::initEncodingList()
@@ -100,20 +108,30 @@ void MainWindow::initTableWidget()
 {
     mIdDelegate->setId2("PC");
     mIdDelegate->setId3("MCU");
-    ui->received_tableView->setItemDelegateForColumn(0, mTimeDelegate);
-    ui->received_tableView->setItemDelegateForColumn(1, mTimeDelegate);
-    ui->received_tableView->setItemDelegateForColumn(2, mIdDelegate);
-    ui->received_tableView->setItemDelegateForColumn(3, mEncDelegate);
-    ui->received_tableView->setModel(mFragModel);
-    ui->received_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableView->setItemDelegateForColumn(0, mTimeDelegate);
+    ui->tableView->setItemDelegateForColumn(1, mTimeDelegate);
+    ui->tableView->setItemDelegateForColumn(2, mIdDelegate);
+    ui->tableView->setItemDelegateForColumn(3, mEncDelegate);
+    ui->tableView->setModel(mFragModel);
+    ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    //ui->received_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->received_tableView->horizontalHeader()->setStretchLastSection(true);
+    //ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
-    //const QFont fixedFont = QFontDatabase::systemFont(QFontDatabase::FixedFont);
     QFont fixedFont("Monospace");
     fixedFont.setStyleHint(QFont::TypeWriter);
-    ui->received_tableView->setFont(fixedFont);
+    ui->tableView->setFont(fixedFont);
+}
+
+void MainWindow::initDocks()
+{
+    mSearchDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+    mSearchDock->setWidget(mSearchWidget);
+    addDockWidget(Qt::RightDockWidgetArea, mSearchDock);
+
+    mFilteredDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
+    mFilteredDock->setWidget(mFilteredWidget);
+    addDockWidget(Qt::BottomDockWidgetArea, mFilteredDock);
 }
 
 void MainWindow::applySettings(const QString &port,
@@ -144,9 +162,9 @@ void MainWindow::applySettings(const QString &port,
 
 void MainWindow::play()
 {
-    ui->play_pushButton->setDisabled(true);
-    ui->pause_pushButton->setEnabled(true);
-    ui->settings_pushButton->setDisabled(true);
+    ui->play_toolButton->setDisabled(true);
+    ui->pause_toolButton->setEnabled(true);
+    ui->settings_toolButton->setDisabled(true);
 
     //mSerial->setPortName("COM6");//mPort);         ///////// to be modified
     //mSerial->setBaudRate(115200);
@@ -164,9 +182,9 @@ void MainWindow::pause()
 {
     mTimer->stop();
     mCmds->deInitUart->write();
-    ui->pause_pushButton->setDisabled(true);
-    ui->play_pushButton->setEnabled(true);
-    ui->settings_pushButton->setEnabled(true);
+    ui->pause_toolButton->setDisabled(true);
+    ui->play_toolButton->setEnabled(true);
+    ui->settings_toolButton->setEnabled(true);
     //mSerial->close();                    ///////// to be modified
 }
 

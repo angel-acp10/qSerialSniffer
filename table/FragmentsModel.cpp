@@ -16,11 +16,13 @@ void FragmentsModel::appendFragment(const Fragment &frag)
 
 int FragmentsModel::rowCount(const QModelIndex &parent) const
 {
+    (void)parent;
     return m_fragments.size();
 }
 
 int FragmentsModel::columnCount(const QModelIndex &parent) const
 {
+    (void)parent;
     return 4; // uartId, startTStamp, endTStamp, data
 }
 

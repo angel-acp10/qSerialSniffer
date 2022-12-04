@@ -3,5 +3,8 @@
         <file>images/pause-fill.svg</file>
         <file>images/play-fill.svg</file>
         <file>images/gear-fill.svg</file>
+        <file>images/funnel.svg</file>
+        <file>images/search.svg</file>
+        <file>images/terminal.svg</file>
     </qresource>
 </RCC>
