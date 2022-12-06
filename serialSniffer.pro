@@ -20,6 +20,7 @@ SOURCES += \
     commands/GetId.cpp \
     commands/InitUart.cpp \
     commands/SerialIO.cpp \
+    search/Postfix.cpp \
     table/EncodingDelegate.cpp \
     table/Fragment.cpp \
     main.cpp \
@@ -41,6 +42,7 @@ HEADERS += \
     commands/GetId.h \
     commands/InitUart.h \
     commands/SerialIO.h \
+    search/Postfix.h \
     table/EncodingDelegate.h \
     table/Fragment.h \
     table/FragmentsModel.h \

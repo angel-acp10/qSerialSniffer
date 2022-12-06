@@ -6,6 +6,8 @@
 #include <QDateTime>
 #include <QFontDatabase>
 #include "table/Fragment.h"
+#include "search/Postfix.h"
+#include <QDebug>
 
 #include <QDockWidget>
 
@@ -38,6 +40,14 @@ MainWindow::MainWindow(QWidget *parent)
       mColorB(QColor("black"))
 {
     ui->setupUi(this);
+
+    Postfix pfix;
+    std::string str = "(Af<<0b05)";
+    pfix.setInfix(str);
+    pfix.convert();
+    std::string outStr = pfix.getPostfix();
+    qDebug()<<outStr.data();
+
 
     mSerial->start(); ///////// to be modified
 
