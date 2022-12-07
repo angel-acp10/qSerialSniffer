@@ -15,8 +15,13 @@ public:
     explicit SearchWidget(QWidget *parent = nullptr);
     ~SearchWidget();
 
+private slots:
+    void evaluate();
+
 private:
     Ui::SearchWidget *ui;
+
+
 };
 
 #endif // SEARCHWIDGET_H

@@ -62,7 +62,8 @@ bool Postfix::convert()
             int in_optorPrior = getOperatorPiority(op);
 
             while(!m_stack.empty() &&
-                  getOperatorPiority(m_stack.top()) >= in_optorPrior)
+                  (m_stack.top() != "(") &&
+                  (getOperatorPiority(m_stack.top()) <= in_optorPrior) )
             {
                 m_postfix.append(m_stack.top()+' ');
                 m_stack.pop();
@@ -138,12 +139,10 @@ int Postfix::getOperatorPiority(std::string &operatr) const
 std::string Postfix::getOperand(std::string &infix) const
 {
     int len = 0;
-    for(int i=0; i<(int)infix.length(); i++)
+    for(auto ch : infix)
     {
-        if( (infix[i]>='0' && infix[i]<='9') ||
-            (infix[i]>='A' && infix[i]<='Z') ||
-            (infix[i]>='a' && infix[i]<='z') ||
-             infix[i]=='_' )
+        if( (ch>='0' && ch<='9') || (ch>='A' && ch<='Z') ||
+            (ch>='a' && ch<='z') ||  ch=='_' )
         {
             len++;
         }
