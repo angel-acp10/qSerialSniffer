@@ -21,20 +21,28 @@ SearchWidget::~SearchWidget()
 
 void SearchWidget::evaluate()
 {
+    Postfix pfix;
+    Eval ev;
+
+    int arrayA[10] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
+    int arrayB[10] = {100, 110, 120, 130, 140, 150, 160, 170, 180, 190};
+
     QString infix = ui->plainTextEdit->toPlainText();
 
     std::string in_infix = infix.toStdString();
 
     qDebug()<<"infix: "<<in_infix.data();
 
-    Postfix pfix;
+
     pfix.setInfix(in_infix);
     pfix.convert();
 
     std::string out_postfix = pfix.getPostfix();
     qDebug()<<"postfix: "<<out_postfix.data();
 
-    Eval ev;
+    ev.clearArrayMap();
+    ev.addToArrayMap("a", (int*)arrayA);
+    ev.addToArrayMap("b", (int*)arrayB);
     ev.setPostfix(out_postfix);
     ev.evaluate();
     ev.getResult();

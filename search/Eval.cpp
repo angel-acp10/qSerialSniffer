@@ -7,6 +7,7 @@ Eval::Eval()
       m_funMap()
 {
     m_funMap = {
+        {"[]", &Eval::arraySubscript},
         {"*", &Eval::multiplication},
         {"/", &Eval::division},
         {"%", &Eval::remainder},
@@ -32,6 +33,16 @@ Eval::~Eval()
 {
 }
 
+void Eval::clearArrayMap()
+{
+    m_arrMap.clear();
+}
+
+void Eval::addToArrayMap(const std::string &arrayName, int *arrayPtr)
+{
+    m_arrMap[arrayName] = arrayPtr;
+}
+
 void Eval::setPostfix(std::string &postfix)
 {
     if(m_postfix == postfix)
@@ -51,9 +62,19 @@ void Eval::setPostfix(std::string &postfix)
 
         else if(isOperand(str))
         {
-            item.type = ITEM_OPERAND;
-            item.data.operand = std::stoi(str);
-            m_parsedPostfix.push_back(item);
+            int *arrPtr = isArray(str);
+            if(arrPtr == nullptr)
+            {
+                item.type = ITEM_OPERAND;
+                item.data.operand = std::stoi(str);
+                m_parsedPostfix.push_back(item);
+            }
+            else
+            {
+                item.type = ITEM_ARR_PTR;
+                item.data.arrPtr = arrPtr;
+                m_parsedPostfix.push_back(item);
+            }
         }
         else
         {
@@ -80,13 +101,17 @@ bool Eval::evaluate()
     }
 
     // start algorithm
-    int a, b;
+    Item a, b, res;
     for(auto &item : m_parsedPostfix)
     {
         switch(item.type)
         {
         case ITEM_OPERAND:
-            m_stack.push(item.data.operand);
+            m_stack.push(item);
+            break;
+
+        case ITEM_ARR_PTR:
+            m_stack.push(item);
             break;
 
         case ITEM_OPERATOR:
@@ -96,14 +121,25 @@ bool Eval::evaluate()
             a = m_stack.top();
             m_stack.pop();
 
-            m_stack.push( item.data.operation(a,b) );
+            if(item.data.operation == &arraySubscript)
+            {
+                res.type = ITEM_OPERAND;
+                res.data.operand = item.data.operation(a.data.arrPtr, b.data.operand);
+            }
+            else
+            {
+                res.type = ITEM_OPERAND;
+                res.data.operand = item.data.operation(&a.data.operand, b.data.operand);
+            }
+            m_stack.push( res );
+
             break;
 
         default:
             break;
         }
     }
-    m_result = m_stack.top();
+    m_result = m_stack.top().data.operand;
     m_stack.pop();
     return true;
 }
@@ -128,21 +164,32 @@ bool Eval::isOperand(std::string str) const
     return true;
 }
 
-int Eval::multiplication(int a, int b)  { return a*b; };
-int Eval::division(int a, int b)    { return a/b; };
-int Eval::remainder(int a, int b)   { return a%b; };
-int Eval::addition(int a, int b)    { return a+b; };
-int Eval::subtraction(int a, int b) { return a-b; };
-int Eval::bwLShift(int a, int b)    { return a<<b; };
-int Eval::bwRShift(int a, int b)    { return a>>b; };
-int Eval::less(int a, int b)        { return a<b; };
-int Eval::lessEqual(int a, int b)   { return a<=b; };
-int Eval::greater(int a, int b)     { return a>b; };
-int Eval::greaterEqual(int a, int b){ return a>=b; };
-int Eval::equal(int a, int b)       { return a==b; };
-int Eval::different(int a, int b)   { return a!=b; };
-int Eval::bwAnd(int a, int b)   { return a&b; };
-int Eval::bwXor(int a, int b)   { return a^b; };
-int Eval::bwOr(int a, int b)    { return a|b; };
-int Eval::logAnd(int a, int b)  { return a&&b; };
-int Eval::logOr(int a, int b)   { return a||b; };
+int* Eval::isArray(std::string str) const
+{
+    auto search = m_arrMap.find(str);
+    if(search == m_arrMap.end())
+        return nullptr;
+
+    return search->second;
+}
+
+// used by funPtr
+int Eval::arraySubscript(int *a, int b) { return a[b]; }
+int Eval::multiplication(int *a, int b)  { return (*a)*b; }
+int Eval::division(int *a, int b)    { return (*a)/b; }
+int Eval::remainder(int *a, int b)   { return (*a)%b; }
+int Eval::addition(int *a, int b)    { return (*a)+b; }
+int Eval::subtraction(int *a, int b) { return (*a)-b; }
+int Eval::bwLShift(int *a, int b)    { return (*a)<<b; }
+int Eval::bwRShift(int *a, int b)    { return (*a)>>b; }
+int Eval::less(int *a, int b)        { return (*a)<b; }
+int Eval::lessEqual(int *a, int b)   { return (*a)<=b; }
+int Eval::greater(int *a, int b)     { return (*a)>b; }
+int Eval::greaterEqual(int *a, int b){ return (*a)>=b; }
+int Eval::equal(int *a, int b)       { return (*a)==b; }
+int Eval::different(int *a, int b)   { return (*a)!=b; }
+int Eval::bwAnd(int *a, int b)   { return (*a)&b; }
+int Eval::bwXor(int *a, int b)   { return (*a)^b; }
+int Eval::bwOr(int *a, int b)    { return (*a)|b; }
+int Eval::logAnd(int *a, int b)  { return (*a)&&b; }
+int Eval::logOr(int *a, int b)   { return (*a)||b; }

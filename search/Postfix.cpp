@@ -6,6 +6,7 @@ Postfix::Postfix() :
     m_stack(),
 
     m_operatorPrior( {
+                        {"[]"},
                         {"*", "/", "%"}, // 0 - top priority
                         {"+", "-"},
                         {"<<", ">>"},
@@ -63,13 +64,14 @@ bool Postfix::convert()
 
             while(!m_stack.empty() &&
                   (m_stack.top() != "(") &&
+                  (m_stack.top() != "[") &&
                   (getOperatorPiority(m_stack.top()) <= in_optorPrior) )
             {
                 m_postfix.append(m_stack.top()+' ');
                 m_stack.pop();
             }
             m_stack.push(op);
-            in.erase(0,op.length());
+            in.erase(0, op.length());
         }
         else if(in[0] == '(')
         {
@@ -84,6 +86,22 @@ bool Postfix::convert()
                 m_stack.pop();
             }
             m_stack.pop(); // discard "("
+            in.erase(0,1);
+        }
+        else if(in[0] == '[')
+        {
+            m_stack.push("[");
+            in.erase(0,1);
+        }
+        else if(in[0] == ']')
+        {
+            while(m_stack.top() != "[")
+            {
+                m_postfix.append(m_stack.top()+' ');
+                m_stack.pop();
+            }
+            m_stack.pop(); // discard "["
+            m_stack.push("[]");
             in.erase(0,1);
         }
         else
