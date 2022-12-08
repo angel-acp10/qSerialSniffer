@@ -24,8 +24,8 @@ void SearchWidget::evaluate()
     Postfix pfix;
     Eval ev;
 
-    int arrayA[10] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
-    int arrayB[10] = {100, 110, 120, 130, 140, 150, 160, 170, 180, 190};
+    uint16_t arrayA[10] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
+    uint8_t arrayB[10] = {100, 110, 120, 130, 140, 150, 160, 170, 180, 190};
 
     QString infix = ui->plainTextEdit->toPlainText();
 
@@ -41,8 +41,8 @@ void SearchWidget::evaluate()
     qDebug()<<"postfix: "<<out_postfix.data();
 
     ev.clearArrayMap();
-    ev.addToArrayMap("a", (int*)arrayA);
-    ev.addToArrayMap("b", (int*)arrayB);
+    ev.addToArrayMap("a", arrayA, Eval::VarType::TYPE_UINT16, 10);
+    ev.addToArrayMap("b", arrayB, Eval::VarType::TYPE_UINT8, 10);
     ev.setPostfix(out_postfix);
     ev.evaluate();
     ev.getResult();

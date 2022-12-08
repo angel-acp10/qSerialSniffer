@@ -13,10 +13,18 @@ public:
     Eval();
     ~Eval();
 
-    void clearArrayMap();
-    void addToArrayMap(const std::string &arrayName, int *arrayPtr);
+    enum VarType {
+        TYPE_UINT8=0,
+        TYPE_UINT16,
+        TYPE_UINT32,
+        TYPE_UINT64
+    };
 
-    void setPostfix(std::string &postfix);
+    void clearArrayMap();
+    void addToArrayMap(const std::string &arrayName, void * const arrayPtr,
+                       const VarType type, const int maxLength);
+
+    void setPostfix(const std::string &postfix);
     std::string getPostfix() const;
 
     bool evaluate();
@@ -24,56 +32,64 @@ public:
     int getResult() const;
 
 private:
-    bool isOperand(std::string str) const;
-    int* isArray(std::string str) const;
-
-    static int arraySubscript(int *a, int b);
-    static int multiplication(int *a, int b);
-    static int division(int *a, int b);
-    static int remainder(int *a, int b);
-    static int addition(int *a, int b);
-    static int subtraction(int *a, int b);
-    static int bwLShift(int *a, int b);
-    static int bwRShift(int *a, int b);
-    static int less(int *a, int b);
-    static int lessEqual(int *a, int b);
-    static int greater(int *a, int b);
-    static int greaterEqual(int *a, int b);
-    static int equal(int *a, int b);
-    static int different(int *a, int b);
-    static int bwAnd(int *a, int b);
-    static int bwXor(int *a, int b);
-    static int bwOr(int *a, int b);
-    static int logAnd(int *a, int b);
-    static int logOr(int *a, int b);
+    struct ArrayInfo {
+        void *ptr;
+        VarType varType;
+        int maxLength;
+    };
 
     enum PostfixItemType{
         ITEM_OPERAND=0,
-        ITEM_ARR_PTR,
+        ITEM_ARRAY,
         ITEM_OPERATOR
     };
-    typedef int(*funPtr)(int *a, int b);
-    union Data{
-        constexpr Data() : operand{0} {};
-        //~Data();
-        int operand;        // ITEM_OPERAND
-        int *arrPtr;        // ITEM_ARR_PTR
-        funPtr operation;   // ITEM_OPERATOR
 
-    };
     struct Item{
         constexpr Item() : type{ITEM_OPERAND} {};
         //~Item();
+
         PostfixItemType type;
-        Eval::Data data;
+        union Data
+        {
+            constexpr Data() : operand{0} {};
+            //~Data();
+            int operand;        // ITEM_OPERAND
+            ArrayInfo array;    // ITEM_ARRAY
+            int(*operation)(const Item &a, const Item &b, bool &ok);   // ITEM_OPERATOR
+        }data;
     };
 
+    typedef int(*funPtr)(const Item &a, const Item &b, bool &ok);
 
-    std::unordered_map<std::string, int*> m_arrMap;
+
+    bool isOperand(const std::string &str) const;
+    bool isArray(const std::string &str, Eval::ArrayInfo &array) const;
+
+    static int arraySubscript(const Item &a, const Item &b, bool &ok);
+    static int multiplication(const Item &a, const Item &b, bool &ok);
+    static int division(const Item &a, const Item &b, bool &ok);
+    static int remainder(const Item &a, const Item &b, bool &ok);
+    static int addition(const Item &a, const Item &b, bool &ok);
+    static int subtraction(const Item &a, const Item &b, bool &ok);
+    static int bwLShift(const Item &a, const Item &b, bool &ok);
+    static int bwRShift(const Item &a, const Item &b, bool &ok);
+    static int less(const Item &a, const Item &b, bool &ok);
+    static int lessEqual(const Item &a, const Item &b, bool &ok);
+    static int greater(const Item &a, const Item &b, bool &ok);
+    static int greaterEqual(const Item &a, const Item &b, bool &ok);
+    static int equal(const Item &a, const Item &b, bool &ok);
+    static int different(const Item &a, const Item &b, bool &ok);
+    static int bwAnd(const Item &a, const Item &b, bool &ok);
+    static int bwXor(const Item &a, const Item &b, bool &ok);
+    static int bwOr(const Item &a, const Item &b, bool &ok);
+    static int logAnd(const Item &a, const Item &b, bool &ok);
+    static int logOr(const Item &a, const Item &b, bool &ok);
+
+    std::unordered_map<std::string, ArrayInfo> m_arrMap;
     std::string m_postfix;
-    std::vector<Item> m_parsedPostfix; // it can be ITEM_OPERAND, ITEM_ARR_PTR, ITEM_OPERATOR
+    std::vector<Item> m_parsedPostfix; // it can be ITEM_OPERAND, ITEM_ARRAY, ITEM_OPERATOR
     int m_result;
-    std::stack<Item> m_stack; // it can only be ITEM_OPERAND, ITEM_ARR_PTR
+    std::stack<Item> m_stack; // it can only be ITEM_OPERAND, ITEM_ARRAY
     std::unordered_map<std::string, funPtr> m_funMap;
 };
 

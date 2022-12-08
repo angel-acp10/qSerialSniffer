@@ -1,5 +1,6 @@
 #include "Eval.h"
 #include <sstream>
+#include <bit>
 
 Eval::Eval()
     : m_postfix(""),
@@ -38,12 +39,17 @@ void Eval::clearArrayMap()
     m_arrMap.clear();
 }
 
-void Eval::addToArrayMap(const std::string &arrayName, int *arrayPtr)
+void Eval::addToArrayMap(const std::string &arrayName, void * const arrayPtr,
+                         const VarType varType, const int maxLength)
 {
-    m_arrMap[arrayName] = arrayPtr;
+    m_arrMap[arrayName] = {
+        .ptr = arrayPtr,
+        .varType = varType,
+        .maxLength = maxLength
+    };
 }
 
-void Eval::setPostfix(std::string &postfix)
+void Eval::setPostfix(const std::string &postfix)
 {
     if(m_postfix == postfix)
         return;
@@ -62,17 +68,17 @@ void Eval::setPostfix(std::string &postfix)
 
         else if(isOperand(str))
         {
-            int *arrPtr = isArray(str);
-            if(arrPtr == nullptr)
+            ArrayInfo array;
+            if(isArray(str, array))
             {
-                item.type = ITEM_OPERAND;
-                item.data.operand = std::stoi(str);
+                item.type = ITEM_ARRAY;
+                item.data.array = array;
                 m_parsedPostfix.push_back(item);
             }
             else
             {
-                item.type = ITEM_ARR_PTR;
-                item.data.arrPtr = arrPtr;
+                item.type = ITEM_OPERAND;
+                item.data.operand = std::stoi(str);
                 m_parsedPostfix.push_back(item);
             }
         }
@@ -102,6 +108,7 @@ bool Eval::evaluate()
 
     // start algorithm
     Item a, b, res;
+    bool ok;
     for(auto &item : m_parsedPostfix)
     {
         switch(item.type)
@@ -110,7 +117,7 @@ bool Eval::evaluate()
             m_stack.push(item);
             break;
 
-        case ITEM_ARR_PTR:
+        case ITEM_ARRAY:
             m_stack.push(item);
             break;
 
@@ -121,18 +128,11 @@ bool Eval::evaluate()
             a = m_stack.top();
             m_stack.pop();
 
-            if(item.data.operation == &arraySubscript)
-            {
-                res.type = ITEM_OPERAND;
-                res.data.operand = item.data.operation(a.data.arrPtr, b.data.operand);
-            }
-            else
-            {
-                res.type = ITEM_OPERAND;
-                res.data.operand = item.data.operation(&a.data.operand, b.data.operand);
-            }
+            res.type = ITEM_OPERAND;
+            res.data.operand = item.data.operation(a, b, ok);
+            if(ok == false)
+                return false;
             m_stack.push( res );
-
             break;
 
         default:
@@ -149,7 +149,7 @@ int Eval::getResult() const
     return m_result;
 }
 
-bool Eval::isOperand(std::string str) const
+bool Eval::isOperand(const std::string &str) const
 {
     for(auto ch : str)
     {
@@ -164,32 +164,227 @@ bool Eval::isOperand(std::string str) const
     return true;
 }
 
-int* Eval::isArray(std::string str) const
+bool Eval::isArray(const std::string &str, Eval::ArrayInfo &array) const
 {
     auto search = m_arrMap.find(str);
     if(search == m_arrMap.end())
-        return nullptr;
+        return false;
 
-    return search->second;
+    array = search->second;
+    return true;
 }
 
 // used by funPtr
-int Eval::arraySubscript(int *a, int b) { return a[b]; }
-int Eval::multiplication(int *a, int b)  { return (*a)*b; }
-int Eval::division(int *a, int b)    { return (*a)/b; }
-int Eval::remainder(int *a, int b)   { return (*a)%b; }
-int Eval::addition(int *a, int b)    { return (*a)+b; }
-int Eval::subtraction(int *a, int b) { return (*a)-b; }
-int Eval::bwLShift(int *a, int b)    { return (*a)<<b; }
-int Eval::bwRShift(int *a, int b)    { return (*a)>>b; }
-int Eval::less(int *a, int b)        { return (*a)<b; }
-int Eval::lessEqual(int *a, int b)   { return (*a)<=b; }
-int Eval::greater(int *a, int b)     { return (*a)>b; }
-int Eval::greaterEqual(int *a, int b){ return (*a)>=b; }
-int Eval::equal(int *a, int b)       { return (*a)==b; }
-int Eval::different(int *a, int b)   { return (*a)!=b; }
-int Eval::bwAnd(int *a, int b)   { return (*a)&b; }
-int Eval::bwXor(int *a, int b)   { return (*a)^b; }
-int Eval::bwOr(int *a, int b)    { return (*a)|b; }
-int Eval::logAnd(int *a, int b)  { return (*a)&&b; }
-int Eval::logOr(int *a, int b)   { return (*a)||b; }
+int Eval::arraySubscript(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if(a.type != ITEM_ARRAY)
+    {
+        ok = false;
+        return -1;
+    }
+    else if((b.data.operand < 0) || (b.data.operand >= a.data.array.maxLength))
+    {
+        ok = false;
+        return -2;
+    }
+
+    switch(a.data.array.varType)
+    {
+    case TYPE_UINT8:    return (int)( (uint8_t*)a.data.array.ptr)[b.data.operand];
+    case TYPE_UINT16:   return (int)((uint16_t*)a.data.array.ptr)[b.data.operand];
+    case TYPE_UINT32:   return (int)((uint32_t*)a.data.array.ptr)[b.data.operand];
+    case TYPE_UINT64:   return (int)((uint64_t*)a.data.array.ptr)[b.data.operand];
+    }
+}
+
+int Eval::multiplication(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand * b.data.operand;
+}
+int Eval::division(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand / b.data.operand;
+}
+int Eval::remainder(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand % b.data.operand;
+}
+int Eval::addition(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand + b.data.operand;
+}
+int Eval::subtraction(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand - b.data.operand;
+}
+int Eval::bwLShift(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    if(b.data.operand < 0)
+    {
+        ok = false;
+        return -2;
+    }
+    return a.data.operand << b.data.operand;
+}
+int Eval::bwRShift(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    if(b.data.operand < 0)
+    {
+        ok = false;
+        return -2;
+    }
+    return a.data.operand >> b.data.operand;
+}
+int Eval::less(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand < b.data.operand;
+}
+int Eval::lessEqual(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand <= b.data.operand;
+}
+int Eval::greater(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand > b.data.operand;
+}
+int Eval::greaterEqual(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand >= b.data.operand;
+}
+int Eval::equal(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand == b.data.operand;
+}
+int Eval::different(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand != b.data.operand;
+}
+int Eval::bwAnd(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand & b.data.operand;
+}
+int Eval::bwXor(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand ^ b.data.operand;
+}
+int Eval::bwOr(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand | b.data.operand;
+}
+int Eval::logAnd(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand && b.data.operand;
+}
+int Eval::logOr(const Item &a, const Item &b, bool &ok)
+{
+    ok = true;
+    if((a.type != ITEM_OPERAND) || (b.type != ITEM_OPERAND))
+    {
+        ok = false;
+        return -1;
+    }
+    return a.data.operand || b.data.operand;
+}
