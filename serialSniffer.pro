@@ -20,8 +20,8 @@ SOURCES += \
     commands/GetId.cpp \
     commands/InitUart.cpp \
     commands/SerialIO.cpp \
-    search/Eval.cpp \
-    search/Postfix.cpp \
+    search/ExpressionTree.cpp \
+    search/TreeNode.cpp \
     table/EncodingDelegate.cpp \
     table/Fragment.cpp \
     main.cpp \
@@ -43,8 +43,8 @@ HEADERS += \
     commands/GetId.h \
     commands/InitUart.h \
     commands/SerialIO.h \
-    search/Eval.h \
-    search/Postfix.h \
+    search/ExpressionTree.h \
+    search/TreeNode.h \
     table/EncodingDelegate.h \
     table/Fragment.h \
     table/FragmentsModel.h \
