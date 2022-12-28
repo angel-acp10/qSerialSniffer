@@ -17,6 +17,7 @@
 
 #include "SearchWidget.h"
 #include "FilteredWidget.h"
+#include "search/ExpressionTree.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -58,10 +59,11 @@ private:
     EncodingDelegate *mEncDelegate;
     QTimer *mTimer;
 
-    QDockWidget *mSearchDock;
+    ExpressionTree *mExpressionTree;
     QDockWidget *mFilteredDock;
-    SearchWidget *mSearchWidget;
+    QDockWidget *mSearchDock;
     FilteredWidget *mFilteredWidget;
+    SearchWidget *mSearchWidget;
     
     QString mPort;
     int mSnifferBaudrate;

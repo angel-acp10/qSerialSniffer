@@ -1,44 +1,37 @@
 #include "SearchWidget.h"
 #include "ui_SearchWidget.h"
 
-#include "search/ExpressionTree.h"
-
-
 #include <QDebug>
 
 
-SearchWidget::SearchWidget(QWidget *parent) :
+SearchWidget::SearchWidget(FilteredWidget *filteredWidget, QWidget *parent) :
     QWidget(parent),
-    ui(new Ui::SearchWidget)
+    ui(new Ui::SearchWidget),
+    m_filteredWidget(filteredWidget)
 {
     ui->setupUi(this);
 
-    connect(ui->eval_pushButton, &QPushButton::clicked, this, &SearchWidget::evaluate);
+    connect(ui->set2_pushButton, &QPushButton::clicked,
+            this, [this]()
+            {
+                QString filter = ui->edit2_plainTextEdit->toPlainText();
+                m_filteredWidget->setFilter2(filter);
+            }
+    );
+    connect(ui->set3_pushButton, &QPushButton::clicked,
+            this, [this]()
+            {
+                QString filter = ui->edit3_plainTextEdit->toPlainText();
+                m_filteredWidget->setFilter3(filter);
+            }
+    );
+    connect(m_filteredWidget, &FilteredWidget::filter2Changed,
+            ui->curr2_plainTextEdit, &QPlainTextEdit::setPlainText);
+    connect(m_filteredWidget, &FilteredWidget::filter3Changed,
+            ui->curr3_plainTextEdit, &QPlainTextEdit::setPlainText);
 }
 
 SearchWidget::~SearchWidget()
 {
     delete ui;
-}
-
-void SearchWidget::evaluate()
-{
-    QString infix = ui->plainTextEdit->toPlainText();
-    std::string in_infix = infix.toStdString();
-    qDebug()<<"infix: "<<in_infix.data();
-
-    uint16_t arrayA[10] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09};
-    uint8_t arrayB[10] = {100, 110, 120, 130, 140, 150, 160, 170, 180, 190};
-
-    ExpressionTree expTree;
-
-    ArrayNode::ArrayInfo aInfo = {
-        .ptr = arrayA,
-        .maxL = 10,
-        .arrType = ArrayNode::ArrayInfo::kUint16
-    };
-    expTree.setArray("a", aInfo);
-    expTree.build(in_infix);
-    bool ok;
-    qDebug() << expTree.toString().data() << "="<< expTree.evaluate(ok);
 }

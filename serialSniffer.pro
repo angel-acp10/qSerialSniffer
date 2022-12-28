@@ -23,6 +23,7 @@ SOURCES += \
     search/ExpressionTree.cpp \
     search/TreeNode.cpp \
     table/EncodingDelegate.cpp \
+    table/FilteredFragmentsProxy.cpp \
     table/Fragment.cpp \
     main.cpp \
     MainWindow.cpp \
@@ -46,6 +47,7 @@ HEADERS += \
     search/ExpressionTree.h \
     search/TreeNode.h \
     table/EncodingDelegate.h \
+    table/FilteredFragmentsProxy.h \
     table/Fragment.h \
     table/FragmentsModel.h \
     table/IdDelegate.h \

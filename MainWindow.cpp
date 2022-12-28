@@ -24,10 +24,11 @@ MainWindow::MainWindow(QWidget *parent)
       mEncDelegate(new EncodingDelegate(this)),
       mTimer(new QTimer),
 
-      mSearchDock(new QDockWidget("Search", this)),
+      mExpressionTree(new ExpressionTree()),
       mFilteredDock(new QDockWidget("Filtered Terminal", this)),
-      mSearchWidget(new SearchWidget(mSearchDock)),
-      mFilteredWidget(new FilteredWidget(mFilteredDock)),
+      mSearchDock(new QDockWidget("Search", this)),
+      mFilteredWidget(new FilteredWidget(mFragModel, mFilteredDock)),
+      mSearchWidget(new SearchWidget(mFilteredWidget, mSearchDock)),
 
       mPort(""),
       mSnifferBaudrate(9600),

@@ -54,7 +54,7 @@ void SerialIO::run()
     //stage_t stage = STAGE_IDLE;
 
     QSerialPort serial;
-    serial.setPortName("COM4");
+    serial.setPortName("COM7");
     serial.setBaudRate( 115200 );
     //serial.setDataBits( QSerialPort::Data8 );
     //serial.setParity( QSerialPort::NoParity );
@@ -65,7 +65,7 @@ void SerialIO::run()
     m_mutex.unlock();
     int id = 0;
     uint16_t cmdLength;
-    bool debug = true;
+    bool debug = false;
 
     while (!m_quit)
     {

@@ -2,6 +2,7 @@
 #define SEARCHWIDGET_H
 
 #include <QWidget>
+#include "FilteredWidget.h"
 
 namespace Ui {
 class SearchWidget;
@@ -12,16 +13,12 @@ class SearchWidget : public QWidget
     Q_OBJECT
 
 public:
-    explicit SearchWidget(QWidget *parent = nullptr);
+    explicit SearchWidget(FilteredWidget *filteredWidget, QWidget *parent = nullptr);
     ~SearchWidget();
-
-private slots:
-    void evaluate();
 
 private:
     Ui::SearchWidget *ui;
-
-
+    FilteredWidget *m_filteredWidget;
 };
 
 #endif // SEARCHWIDGET_H
