@@ -19,20 +19,20 @@ public:
                             QWidget *parent = nullptr);
     ~FilteredWidget();
 
-    void setFilter2(const QString& filter);
-    void setFilter3(const QString& filter);
-    const QString getFilter2() const;
-    const QString getFilter3() const;
+    void setFilterA(const QString& filter);
+    void setFilterB(const QString& filter);
+    const QString getFilterA() const;
+    const QString getFilterB() const;
 
 signals:
-    void filter2Changed(const QString &filter);
-    void filter3Changed(const QString &filter);
+    void filterAChanged(const QString &filter);
+    void filterBChanged(const QString &filter);
 
 private:
     Ui::FilteredWidget *ui;
 
-    ExpressionTree *m_exprTree2;
-    ExpressionTree *m_exprTree3;
+    ExpressionTree *m_exprTreeA;
+    ExpressionTree *m_exprTreeB;
     FilteredFragmentsProxy *m_filteredFrags;
 };
 

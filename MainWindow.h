@@ -11,13 +11,10 @@
 #include <QTimer>
 
 #include "table/FragmentsModel.h"
-#include "table/TimeDelegate.h"
-#include "table/IdDelegate.h"
-#include "table/EncodingDelegate.h"
+#include "table/Delegates.h"
 
 #include "SearchWidget.h"
 #include "FilteredWidget.h"
-#include "search/ExpressionTree.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -36,12 +33,9 @@ private:
     void initEncodingList();
     void initTableWidget();
     void initDocks();
+    void initPortLabels();
 
 private slots:
-    void applySettings(const QString &port,
-                       const int bauds, const QString &parity, const int dataSize,
-                       const QColor &colorA, const QColor &colorB,
-                       const QString &aliasA, const QString &aliasB);
     void play();
     void pause();
 
@@ -54,25 +48,13 @@ private:
     TimeStamp *mTStamp1;
     CommandManager *mCmds;
     FragmentsModel *mFragModel;
-    TimeDelegate *mTimeDelegate;
-    IdDelegate *mIdDelegate;
-    EncodingDelegate *mEncDelegate;
+    Delegates *mDelegates;
     QTimer *mTimer;
 
-    ExpressionTree *mExpressionTree;
     QDockWidget *mFilteredDock;
     QDockWidget *mSearchDock;
     FilteredWidget *mFilteredWidget;
     SearchWidget *mSearchWidget;
-    
-    QString mPort;
-    int mSnifferBaudrate;
-    QString mSnifferParity;
-    int mSnifferDataSize;
-    QString mAliasA;
-    QString mAliasB;
-    QColor mColorA;
-    QColor mColorB;
 
 };
 #endif // MAINWINDOW_H

@@ -7,6 +7,7 @@
 #include <QFontDatabase>
 #include "table/Fragment.h"
 #include <QDebug>
+#include <memory>
 
 #include <QDockWidget>
 
@@ -19,27 +20,17 @@ MainWindow::MainWindow(QWidget *parent)
       mTStamp1(new TimeStamp(this)),
       mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
       mFragModel(new FragmentsModel(this)),
-      mTimeDelegate(new TimeDelegate(this)),
-      mIdDelegate(new IdDelegate(this)),
-      mEncDelegate(new EncodingDelegate(this)),
       mTimer(new QTimer),
 
-      mExpressionTree(new ExpressionTree()),
       mFilteredDock(new QDockWidget("Filtered Terminal", this)),
       mSearchDock(new QDockWidget("Search", this)),
       mFilteredWidget(new FilteredWidget(mFragModel, mFilteredDock)),
-      mSearchWidget(new SearchWidget(mFilteredWidget, mSearchDock)),
-
-      mPort(""),
-      mSnifferBaudrate(9600),
-      mSnifferParity("None"),
-      mSnifferDataSize(8),
-      mAliasA(QString("portA")),
-      mAliasB(QString("portB")),
-      mColorA(QColor("black")),
-      mColorB(QColor("black"))
+      mSearchWidget(new SearchWidget(mFilteredWidget, mSettingsDialog, mSearchDock))
 {
     ui->setupUi(this);
+    mDelegates = new Delegates(mFragModel,
+                               mSettingsDialog,
+                               this);
 
     mSerial->start(); ///////// to be modified
 
@@ -47,13 +38,10 @@ MainWindow::MainWindow(QWidget *parent)
     initEncodingList();
     initTableWidget();
     initDocks();
-
-    connect(mSettingsDialog, &SettingsDialog::settingsChanged,
-            this, &MainWindow::applySettings);
-
+    initPortLabels();
 
     connect(mCmds->getId, &GetId::received,
-            [this](GetId::Status, QString id)
+            this, [this](GetId::Status, QString id)
             {
                 QMessageBox::information(this, "GetId response", id);
             });
@@ -66,9 +54,9 @@ MainWindow::MainWindow(QWidget *parent)
             });
 */
     connect(mCmds->getAllQueue, &GetAllQueue::received,
-            [this](QList<Fragment> lst)
+            this, [this](QList<Fragment> lst)
             {
-                for(auto frag : lst)
+                for(const auto &frag : lst)
                 {
                     mFragModel->appendFragment(frag);
                 }
@@ -102,18 +90,21 @@ void MainWindow::initButtons()
 
 void MainWindow::initEncodingList()
 {
-    QList<QString> encodingList {"ASCII", "Hex", "Dec", "Bin"};
-    ui->encoding_comboBox->addItems(encodingList);
+    std::unique_ptr<QList<QString>> encodingList(
+                mDelegates->encoding->getEncodings() );
+
+    ui->encoding_comboBox->addItems(*encodingList);
+
+    connect(ui->encoding_comboBox, &QComboBox::currentTextChanged,
+            mDelegates->encoding, &EncodingDelegate::showAs);
 }
 
 void MainWindow::initTableWidget()
 {
-    mIdDelegate->setId2("PC");
-    mIdDelegate->setId3("MCU");
-    ui->tableView->setItemDelegateForColumn(0, mTimeDelegate);
-    ui->tableView->setItemDelegateForColumn(1, mTimeDelegate);
-    ui->tableView->setItemDelegateForColumn(2, mIdDelegate);
-    ui->tableView->setItemDelegateForColumn(3, mEncDelegate);
+    ui->tableView->setItemDelegateForColumn(0, mDelegates->time);
+    ui->tableView->setItemDelegateForColumn(1, mDelegates->time);
+    ui->tableView->setItemDelegateForColumn(2, mDelegates->id);
+    ui->tableView->setItemDelegateForColumn(3, mDelegates->encoding);
     ui->tableView->setModel(mFragModel);
     ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
@@ -136,30 +127,34 @@ void MainWindow::initDocks()
     addDockWidget(Qt::BottomDockWidgetArea, mFilteredDock);
 }
 
-void MainWindow::applySettings(const QString &port,
-                               const int bauds, const QString &parity, const int dataSize,
-                               const QColor &colorA, const QColor &colorB,
-                               const QString &aliasA, const QString &aliasB)
+void MainWindow::initPortLabels()
 {
-    QString labelA = QString("Port A (%1) @ %2 bauds").arg(aliasA).arg(bauds);
-    QString labelB = QString("Port B (%1) @ %2 bauds").arg(aliasB).arg(bauds);
-    QString styleSheetA = QString("QLabel {color : %1}").arg(colorA.name());
-    QString styleSheetB = QString("QLabel {color : %1}").arg(colorB.name());
-
-    mPort = port;
-
-    ui->portA_label->setText(labelA);
-    ui->portB_label->setText(labelB);
-    ui->portA_label->setStyleSheet(styleSheetA);
-    ui->portB_label->setStyleSheet(styleSheetB);
-
-    mSnifferBaudrate = bauds;
-    mSnifferParity = parity;
-    mSnifferDataSize = dataSize;
-    mAliasA = aliasA;
-    mAliasB = aliasB;
-    mColorA = colorA;
-    mColorB = colorB;
+    connect(mSettingsDialog, &SettingsDialog::aliasAChanged,
+            this, [this](const QString& aliasA)
+            {
+                ui->portA_label->setText(QString("Port A (%1)").arg(aliasA));
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::aliasBChanged,
+            this, [this](const QString& aliasB)
+            {
+                ui->portB_label->setText(QString("Port B (%1)").arg(aliasB));
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::colorAChanged,
+            this, [this](const QColor& colorA)
+            {
+                QString styleSheetA = QString("QLabel {color : %1}").arg(colorA.name());
+                ui->portA_label->setStyleSheet(styleSheetA);
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::colorBChanged,
+            this, [this](const QColor& colorB)
+            {
+                QString styleSheetB = QString("QLabel {color : %1}").arg(colorB.name());
+                ui->portB_label->setStyleSheet(styleSheetB);
+            }
+    );
 }
 
 void MainWindow::play()

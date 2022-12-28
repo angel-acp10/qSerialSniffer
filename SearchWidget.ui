@@ -15,9 +15,9 @@
   </property>
   <layout class="QVBoxLayout" name="verticalLayout_9">
    <item>
-    <widget class="QGroupBox" name="port2_groupBox">
+    <widget class="QGroupBox" name="portA_groupBox">
      <property name="title">
-      <string>Port 2</string>
+      <string>Port A</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_4">
       <item>
@@ -25,14 +25,14 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout">
           <item>
-           <widget class="QLabel" name="curr2_label">
+           <widget class="QLabel" name="currA_label">
             <property name="text">
              <string>Current</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="curr2_plainTextEdit">
+           <widget class="QPlainTextEdit" name="currA_plainTextEdit">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -67,7 +67,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_2">
           <item>
-           <widget class="QLabel" name="edit2_label">
+           <widget class="QLabel" name="editA_label">
             <property name="text">
              <string>Edit</string>
             </property>
@@ -76,7 +76,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout">
             <item>
-             <widget class="QPlainTextEdit" name="edit2_plainTextEdit">
+             <widget class="QPlainTextEdit" name="editA_plainTextEdit">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -86,7 +86,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="set2_pushButton">
+             <widget class="QPushButton" name="setA_pushButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                 <horstretch>0</horstretch>
@@ -114,9 +114,9 @@
     </widget>
    </item>
    <item>
-    <widget class="QGroupBox" name="port3_groupBox">
+    <widget class="QGroupBox" name="portB_groupBox">
      <property name="title">
-      <string>Port 3</string>
+      <string>Port B</string>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_5">
       <item>
@@ -124,14 +124,14 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_7">
           <item>
-           <widget class="QLabel" name="curr3_label">
+           <widget class="QLabel" name="currB_label">
             <property name="text">
              <string>Current</string>
             </property>
            </widget>
           </item>
           <item>
-           <widget class="QPlainTextEdit" name="curr3_plainTextEdit">
+           <widget class="QPlainTextEdit" name="currB_plainTextEdit">
             <property name="enabled">
              <bool>false</bool>
             </property>
@@ -148,7 +148,7 @@
         <item>
          <layout class="QVBoxLayout" name="verticalLayout_8">
           <item>
-           <widget class="QLabel" name="edit3_label">
+           <widget class="QLabel" name="editB_label">
             <property name="text">
              <string>Edit</string>
             </property>
@@ -157,7 +157,7 @@
           <item>
            <layout class="QHBoxLayout" name="horizontalLayout_2">
             <item>
-             <widget class="QPlainTextEdit" name="edit3_plainTextEdit">
+             <widget class="QPlainTextEdit" name="editB_plainTextEdit">
               <property name="minimumSize">
                <size>
                 <width>0</width>
@@ -167,7 +167,7 @@
              </widget>
             </item>
             <item>
-             <widget class="QPushButton" name="set3_pushButton">
+             <widget class="QPushButton" name="setB_pushButton">
               <property name="sizePolicy">
                <sizepolicy hsizetype="Fixed" vsizetype="Expanding">
                 <horstretch>0</horstretch>

@@ -27,6 +27,39 @@ SettingsDialog::~SettingsDialog()
     delete ui;
 }
 
+const QString& SettingsDialog::getPort() const
+{
+    return m_port;
+}
+int SettingsDialog::getBauds() const
+{
+    return m_bauds;
+}
+const QString& SettingsDialog::getParity() const
+{
+    return m_parity;
+}
+int SettingsDialog::getDataSize() const
+{
+    return m_dataSize;
+}
+const QColor& SettingsDialog::getColorA() const
+{
+    return m_colorA;
+}
+const QColor& SettingsDialog::getColorB() const
+{
+    return m_colorB;
+}
+const QString& SettingsDialog::getAliasA() const
+{
+    return m_aliasA;
+}
+const QString& SettingsDialog::getAliasB() const
+{
+    return m_aliasB;
+}
+
 void SettingsDialog::fillBauds()
 {
     QList<QString> baudList {"1200", "2400", "4800", "9600", "19200", "38400", "57600", "115200"};
@@ -48,7 +81,7 @@ void SettingsDialog::fillDataSize()
 void SettingsDialog::scanPorts()
 {
     ui->port_comboBox->clear();
-    for(auto port : QSerialPortInfo::availablePorts())
+    for(const auto &port : QSerialPortInfo::availablePorts())
         ui->port_comboBox->addItem(port.portName());
 }
 
@@ -101,6 +134,48 @@ void SettingsDialog::validateData()
     {
         QMessageBox::warning(this, tr("Error"), tr("Both aliases are the same."));
     }
-    emit settingsChanged(port, bauds, parity, dataSize, colorA, colorB, aliasA, aliasB);
+
+    // amit signals
+    if(port != m_port)
+    {
+        m_port = port;
+        emit portChanged(m_port);
+    }
+    if(bauds != m_bauds)
+    {
+        m_bauds = bauds;
+        emit baudsChanged(m_bauds);
+    }
+    if(parity != m_parity)
+    {
+        m_parity = parity;
+        emit parityChanged(m_parity);
+    }
+    if(dataSize != m_dataSize)
+    {
+        m_dataSize = dataSize;
+        emit dataSizeChanged(m_dataSize);
+    }
+    if(colorA != m_colorA)
+    {
+        m_colorA = colorA;
+        emit colorAChanged(m_colorA);
+    }
+    if(colorB != m_colorB)
+    {
+        m_colorB = colorB;
+        emit colorBChanged(m_colorB);
+    }
+    if(aliasA != m_aliasA)
+    {
+        m_aliasA = aliasA;
+        emit aliasAChanged(m_aliasA);
+    }
+    if(aliasB != m_aliasB)
+    {
+        m_aliasB = aliasB;
+        emit aliasBChanged(m_aliasB);
+    }
+
     accept();
 }

@@ -7,12 +7,12 @@ FilteredWidget::FilteredWidget(FragmentsModel *fragsModel,
                                QWidget *parent)
     :   QWidget(parent),
         ui(new Ui::FilteredWidget),
-        m_exprTree2(new ExpressionTree),
-        m_exprTree3(new ExpressionTree)
+        m_exprTreeA(new ExpressionTree),
+        m_exprTreeB(new ExpressionTree)
 {
     ui->setupUi(this);
 
-    m_filteredFrags = new FilteredFragmentsProxy(m_exprTree2, m_exprTree3, this);
+    m_filteredFrags = new FilteredFragmentsProxy(m_exprTreeA, m_exprTreeB, this);
     m_filteredFrags->setSourceModel(fragsModel);
     ui->tableView->setModel(m_filteredFrags);
 }
@@ -22,24 +22,26 @@ FilteredWidget::~FilteredWidget()
     delete ui;
 }
 
-void FilteredWidget::setFilter2(const QString& filter)
+void FilteredWidget::setFilterA(const QString& filter)
 {
-    m_exprTree2->build(filter.toStdString());
-    emit filter2Changed(getFilter2());
+    m_exprTreeA->build(filter.toStdString());
+    m_filteredFrags->invalidate();
+    emit filterAChanged(getFilterA());
 }
-void FilteredWidget::setFilter3(const QString& filter)
+void FilteredWidget::setFilterB(const QString& filter)
 {
-    m_exprTree3->build(filter.toStdString());
-    emit filter3Changed(getFilter3());
+    m_exprTreeB->build(filter.toStdString());
+    m_filteredFrags->invalidate();
+    emit filterBChanged(getFilterB());
 }
 
-const QString FilteredWidget::getFilter2() const
+const QString FilteredWidget::getFilterA() const
 {
-    QString filter = QString::fromStdString(m_exprTree2->toString());
+    QString filter = QString::fromStdString(m_exprTreeA->toString());
     return filter;
 }
-const QString FilteredWidget::getFilter3() const
+const QString FilteredWidget::getFilterB() const
 {
-    QString filter = QString::fromStdString(m_exprTree3->toString());
+    QString filter = QString::fromStdString(m_exprTreeB->toString());
     return filter;
 }

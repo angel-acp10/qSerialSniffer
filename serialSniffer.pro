@@ -22,14 +22,15 @@ SOURCES += \
     commands/SerialIO.cpp \
     search/ExpressionTree.cpp \
     search/TreeNode.cpp \
-    table/EncodingDelegate.cpp \
+    #table/EncodingDelegate.cpp \
     table/FilteredFragmentsProxy.cpp \
     table/Fragment.cpp \
     main.cpp \
     MainWindow.cpp \
     table/FragmentsModel.cpp \
-    table/IdDelegate.cpp \
-    table/TimeDelegate.cpp
+    #table/IdDelegate.cpp \
+    #table/TimeDelegate.cpp \
+    table/Delegates.cpp
 
 HEADERS += \
     FilteredWidget.h \
@@ -46,12 +47,13 @@ HEADERS += \
     commands/SerialIO.h \
     search/ExpressionTree.h \
     search/TreeNode.h \
-    table/EncodingDelegate.h \
+    #table/EncodingDelegate.h \
     table/FilteredFragmentsProxy.h \
     table/Fragment.h \
     table/FragmentsModel.h \
-    table/IdDelegate.h \
-    table/TimeDelegate.h
+    #table/IdDelegate.h \
+    #table/TimeDelegate.h \
+    table/Delegates.h
 
 FORMS += \
     FilteredWidget.ui \
