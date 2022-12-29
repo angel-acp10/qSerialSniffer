@@ -58,3 +58,10 @@ QVariant FragmentsModel::headerData(int section, Qt::Orientation orientation, in
     default:    return QVariant();
     }
 }
+
+void FragmentsModel::reset()
+{
+    beginResetModel();
+    m_fragments.clear();
+    endResetModel();
+}

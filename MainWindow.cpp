@@ -86,6 +86,8 @@ void MainWindow::initButtons()
     connect(ui->pause_toolButton, &QToolButton::clicked, this, &MainWindow::pause);
     connect(ui->pause_toolButton, &QToolButton::clicked, mTStamp0, &TimeStamp::onPauseClicked);
     connect(ui->pause_toolButton, &QToolButton::clicked, mTStamp1, &TimeStamp::onPauseClicked);
+
+    connect(ui->reset_toolButton, &QToolButton::clicked, mFragModel, &FragmentsModel::reset);
 }
 
 void MainWindow::initEncodingList()
