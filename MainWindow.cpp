@@ -125,9 +125,9 @@ void MainWindow::initLeftToolbar()
 
     ui->filteredTerminal_toolButton->setCheckable(true);
     ui->filteredTerminal_toolButton->setChecked(false);
-    ui->filtered_tableView->setVisible(false);
+    ui->filteredMonitor_widget->setVisible(false);
     connect(ui->filteredTerminal_toolButton, &QToolButton::clicked,
-            ui->filtered_tableView, &QWidget::setVisible);
+            ui->filteredMonitor_widget, &QWidget::setVisible);
 }
 
 void MainWindow::initEncodingList()
@@ -157,7 +157,7 @@ void MainWindow::initTable()
     fixedFont.setStyleHint(QFont::TypeWriter);
     ui->tableView->setFont(fixedFont);
 
-    int idx = ui->horizontal_splitter->indexOf(ui->tableView);
+    int idx = ui->horizontal_splitter->indexOf(ui->monitor_widget);
     ui->horizontal_splitter->setCollapsible(idx, false);
 
     idx = ui->vertical_splitter->indexOf(ui->central_widget);
@@ -180,7 +180,7 @@ void MainWindow::initRightFilteredTable()
     fixedFont.setStyleHint(QFont::TypeWriter);
     ui->filtered_tableView->setFont(fixedFont);
 
-    int idx = ui->horizontal_splitter->indexOf(ui->filtered_tableView);
+    int idx = ui->horizontal_splitter->indexOf(ui->filteredMonitor_widget);
     ui->horizontal_splitter->setCollapsible(idx, false);
 }
 
