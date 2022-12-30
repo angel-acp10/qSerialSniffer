@@ -116,6 +116,18 @@ void MainWindow::initLeftToolbar()
     connect(ui->pause_toolButton, &QToolButton::clicked, mTStamp1, &TimeStamp::onPauseClicked);
 
     connect(ui->reset_toolButton, &QToolButton::clicked, mFragModel, &FragmentsModel::reset);
+
+    ui->search_toolButton->setCheckable(true);
+    ui->search_toolButton->setChecked(false);
+    ui->search_widget->setVisible(false);
+    connect(ui->search_toolButton, &QToolButton::clicked,
+            ui->search_widget, &QWidget::setVisible);
+
+    ui->filteredTerminal_toolButton->setCheckable(true);
+    ui->filteredTerminal_toolButton->setChecked(false);
+    ui->filtered_tableView->setVisible(false);
+    connect(ui->filteredTerminal_toolButton, &QToolButton::clicked,
+            ui->filtered_tableView, &QWidget::setVisible);
 }
 
 void MainWindow::initEncodingList()
@@ -144,6 +156,12 @@ void MainWindow::initTable()
     QFont fixedFont("Monospace");
     fixedFont.setStyleHint(QFont::TypeWriter);
     ui->tableView->setFont(fixedFont);
+
+    int idx = ui->horizontal_splitter->indexOf(ui->tableView);
+    ui->horizontal_splitter->setCollapsible(idx, false);
+
+    idx = ui->vertical_splitter->indexOf(ui->central_widget);
+    ui->vertical_splitter->setCollapsible(idx, false);
 }
 
 void MainWindow::initRightFilteredTable()
@@ -161,6 +179,9 @@ void MainWindow::initRightFilteredTable()
     QFont fixedFont("Monospace");
     fixedFont.setStyleHint(QFont::TypeWriter);
     ui->filtered_tableView->setFont(fixedFont);
+
+    int idx = ui->horizontal_splitter->indexOf(ui->filtered_tableView);
+    ui->horizontal_splitter->setCollapsible(idx, false);
 }
 
 void MainWindow::initBottomSearch()
@@ -196,6 +217,9 @@ void MainWindow::initBottomSearch()
                 ui->portB_groupBox->setTitle(QString("Port B (%1)").arg(aliasB));
             }
     );
+
+    int idx = ui->vertical_splitter->indexOf(ui->search_widget);
+    ui->vertical_splitter->setCollapsible(idx, false);
 }
 
 void MainWindow::play()

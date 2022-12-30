@@ -73,12 +73,12 @@
        </layout>
       </item>
       <item>
-       <widget class="QSplitter" name="splitter_2">
+       <widget class="QSplitter" name="vertical_splitter">
         <property name="orientation">
          <enum>Qt::Vertical</enum>
         </property>
-        <widget class="QWidget" name="layoutWidget">
-         <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <widget class="QWidget" name="central_widget" native="true">
+         <layout class="QHBoxLayout" name="central_layout">
           <item>
            <layout class="QVBoxLayout" name="verticalLayout">
             <property name="sizeConstraint">
@@ -215,7 +215,7 @@
            </layout>
           </item>
           <item>
-           <widget class="QSplitter" name="splitter">
+           <widget class="QSplitter" name="horizontal_splitter">
             <property name="orientation">
              <enum>Qt::Horizontal</enum>
             </property>
@@ -225,7 +225,7 @@
           </item>
          </layout>
         </widget>
-        <widget class="QWidget" name="">
+        <widget class="QWidget" name="search_widget" native="true">
          <layout class="QHBoxLayout" name="search_layout">
           <item>
            <widget class="QGroupBox" name="portA_groupBox">
