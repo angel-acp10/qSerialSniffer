@@ -6,6 +6,7 @@
 #include <QColor>
 #include <QPainter>
 #include <QAbstractTableModel>
+#include <QAbstractProxyModel>
 #include <QMetaEnum>
 #include <memory>
 #include "../SettingsDialog.h"
@@ -22,6 +23,7 @@ class Delegates : public QObject
     Q_OBJECT
 public:
     explicit Delegates(QAbstractTableModel *model,
+                       QAbstractProxyModel *filteredModel,
                        SettingsDialog *settings,
                        QObject *parent = nullptr);
 
@@ -76,6 +78,7 @@ public:
     };
     Q_ENUM(Encoding)
     EncodingDelegate(QAbstractTableModel *model,
+                     QAbstractProxyModel *filteredModel,
                      QObject *parent = nullptr);
     QString displayText(const QVariant &value, const QLocale &locale) const override;
     std::unique_ptr<QList<QString>> getEncodings() const;
@@ -86,6 +89,7 @@ public slots:
 private:
     Encoding m_encoding;
     QAbstractTableModel* m_model;
+    QAbstractProxyModel* m_filteredModel;
 
     QString showAsAsciiHex(const QByteArray &arr) const;
     QString showAsHex(const QByteArray &arr) const;

@@ -5,12 +5,13 @@
 // Delegates
 //------------------------
 Delegates::Delegates(QAbstractTableModel *model,
+                     QAbstractProxyModel *filteredModel,
                      SettingsDialog *settings,
                      QObject *parent)
     : QObject{parent},
       time(new TimeDelegate(this)),
       id(new IdDelegate(settings, this)),
-      encoding(new EncodingDelegate(model, this))
+      encoding(new EncodingDelegate(model, filteredModel, this))
 {
 }
 
@@ -93,10 +94,12 @@ void IdDelegate::paint(QPainter *painter,
 // EncodingDelegate
 //------------------------
 EncodingDelegate::EncodingDelegate(QAbstractTableModel *model,
+                                   QAbstractProxyModel *filteredModel,
                                    QObject *parent)
     : QStyledItemDelegate(parent),
       m_encoding(Encoding::AsciiHex),
-      m_model(model)
+      m_model(model),
+      m_filteredModel(filteredModel)
 {
 }
 QString EncodingDelegate::displayText(const QVariant &value, const QLocale &locale) const
@@ -137,9 +140,14 @@ void EncodingDelegate::showAs(const QString &encoding)
         m_encoding = static_cast<Encoding>(value);
 
     int rows = m_model->rowCount();
-    QModelIndex topLeft = m_model->index(0, 3);
-    QModelIndex bottomRight = m_model->index(rows, 3);
-    emit m_model->dataChanged(topLeft, bottomRight);
+    QModelIndex topL = m_model->index(0, 3);
+    QModelIndex bottomR = m_model->index(rows, 3);
+    emit m_model->dataChanged(topL, bottomR);
+
+    rows = m_filteredModel->rowCount();
+    topL = m_filteredModel->index(0, 3);
+    bottomR = m_filteredModel->index(rows, 3);
+    emit m_filteredModel->dataChanged(topL, bottomR);
 }
 QString EncodingDelegate::showAsAsciiHex(const QByteArray &arr) const
 {

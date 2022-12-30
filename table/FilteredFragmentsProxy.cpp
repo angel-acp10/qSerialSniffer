@@ -3,12 +3,14 @@
 
 #include <QDebug>
 
-FilteredFragmentsProxy::FilteredFragmentsProxy(ExpressionTree *exprTree2,
-                                                ExpressionTree *exprTree3,
+FilteredFragmentsProxy::FilteredFragmentsProxy(ExpressionTree *exprTreeA,
+                                                ExpressionTree *exprTreeB,
+                                                SettingsDialog *settings,
                                                 QObject *parent)
     : QSortFilterProxyModel(parent),
-        m_exprTree2(exprTree2),
-        m_exprTree3(exprTree3)
+        m_exprTreeA(exprTreeA),
+        m_exprTreeB(exprTreeB),
+        m_settings(settings)
 {
 
 }
@@ -38,17 +40,17 @@ bool FilteredFragmentsProxy::filterAcceptsRow(
     switch(id)
     {
     case Fragment::PORT_A:
-        name = "portA";
-        m_exprTree2->setArray(name.toStdString(), arrInfo);
-        res = m_exprTree2->evaluate(ok);
-        qDebug()<<"portA"<<res;
+        name = m_settings->getAliasA();
+        m_exprTreeA->setArray(name.toStdString(), arrInfo);
+        res = m_exprTreeA->evaluate(ok);
+        qDebug()<<name<<res;
         return res;
 
     case Fragment::PORT_B:
-        name = "portB";
-        m_exprTree3->setArray(name.toStdString(), arrInfo);
-        res = m_exprTree3->evaluate(ok);
-        qDebug()<<"portB"<<res;
+        name = m_settings->getAliasB();
+        m_exprTreeB->setArray(name.toStdString(), arrInfo);
+        res = m_exprTreeB->evaluate(ok);
+        qDebug()<<name<<res;
         return res;
 
     default:

@@ -12,9 +12,7 @@
 
 #include "table/FragmentsModel.h"
 #include "table/Delegates.h"
-
-#include "SearchWidget.h"
-#include "FilteredWidget.h"
+#include "search/Search.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -29,11 +27,13 @@ public:
     ~MainWindow();
 
 private:
-    void initButtons();
+    void initTopPortLabels();
+    void initLeftToolbar();
     void initEncodingList();
-    void initTableWidget();
-    void initDocks();
-    void initPortLabels();
+    void initTable();
+    void initRightFilteredTable();
+    void initBottomSearch();
+
 
 private slots:
     void play();
@@ -49,12 +49,8 @@ private:
     CommandManager *mCmds;
     FragmentsModel *mFragModel;
     Delegates *mDelegates;
+    Search *mSearch;
     QTimer *mTimer;
-
-    QDockWidget *mFilteredDock;
-    QDockWidget *mSearchDock;
-    FilteredWidget *mFilteredWidget;
-    SearchWidget *mSearchWidget;
 
 };
 #endif // MAINWINDOW_H

@@ -9,8 +9,6 @@ CONFIG += c++17
 #DEFINES += QT_DISABLE_DEPRECATED_BEFORE=0x060000    # disables all the APIs deprecated before Qt 6.0.0
 
 SOURCES += \
-    FilteredWidget.cpp \
-    SearchWidget.cpp \
     SettingsDialog.cpp \
     TimeStamp.cpp \
     commands/Command.cpp \
@@ -21,6 +19,7 @@ SOURCES += \
     commands/InitUart.cpp \
     commands/SerialIO.cpp \
     search/ExpressionTree.cpp \
+    search/Search.cpp \
     search/TreeNode.cpp \
     #table/EncodingDelegate.cpp \
     table/FilteredFragmentsProxy.cpp \
@@ -33,9 +32,7 @@ SOURCES += \
     table/Delegates.cpp
 
 HEADERS += \
-    FilteredWidget.h \
     MainWindow.h \
-    SearchWidget.h \
     SettingsDialog.h \
     TimeStamp.h \
     commands/Command.h \
@@ -46,6 +43,7 @@ HEADERS += \
     commands/InitUart.h \
     commands/SerialIO.h \
     search/ExpressionTree.h \
+    search/Search.h \
     search/TreeNode.h \
     #table/EncodingDelegate.h \
     table/FilteredFragmentsProxy.h \
@@ -56,9 +54,7 @@ HEADERS += \
     table/Delegates.h
 
 FORMS += \
-    FilteredWidget.ui \
     MainWindow.ui \
-    SearchWidget.ui \
     SettingsDialog.ui
 
 # Default rules for deployment.

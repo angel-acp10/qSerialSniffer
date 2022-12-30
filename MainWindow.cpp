@@ -9,8 +9,6 @@
 #include <QDebug>
 #include <memory>
 
-#include <QDockWidget>
-
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
@@ -20,25 +18,25 @@ MainWindow::MainWindow(QWidget *parent)
       mTStamp1(new TimeStamp(this)),
       mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
       mFragModel(new FragmentsModel(this)),
-      mTimer(new QTimer),
-
-      mFilteredDock(new QDockWidget("Filtered Terminal", this)),
-      mSearchDock(new QDockWidget("Search", this)),
-      mFilteredWidget(new FilteredWidget(mFragModel, mFilteredDock)),
-      mSearchWidget(new SearchWidget(mFilteredWidget, mSettingsDialog, mSearchDock))
+      mSearch(new Search(mFragModel, mSettingsDialog, this)),
+      mTimer(new QTimer)
 {
     ui->setupUi(this);
+
     mDelegates = new Delegates(mFragModel,
+                               mSearch->getProxyModel(),
                                mSettingsDialog,
                                this);
 
     mSerial->start(); ///////// to be modified
 
-    initButtons();
+    initTopPortLabels();
+    initLeftToolbar();
     initEncodingList();
-    initTableWidget();
-    initDocks();
-    initPortLabels();
+    initTable();
+    initRightFilteredTable();
+    initBottomSearch();
+
 
     connect(mCmds->getId, &GetId::received,
             this, [this](GetId::Status, QString id)
@@ -70,7 +68,37 @@ MainWindow::~MainWindow()
     delete ui;
 }
 
-void MainWindow::initButtons()
+void MainWindow::initTopPortLabels()
+{
+    connect(mSettingsDialog, &SettingsDialog::aliasAChanged,
+            this, [this](const QString& aliasA)
+            {
+                ui->portA_label->setText(QString("Port A (%1)").arg(aliasA));
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::aliasBChanged,
+            this, [this](const QString& aliasB)
+            {
+                ui->portB_label->setText(QString("Port B (%1)").arg(aliasB));
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::colorAChanged,
+            this, [this](const QColor& colorA)
+            {
+                QString styleSheetA = QString("QLabel {color : %1}").arg(colorA.name());
+                ui->portA_label->setStyleSheet(styleSheetA);
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::colorBChanged,
+            this, [this](const QColor& colorB)
+            {
+                QString styleSheetB = QString("QLabel {color : %1}").arg(colorB.name());
+                ui->portB_label->setStyleSheet(styleSheetB);
+            }
+    );
+}
+
+void MainWindow::initLeftToolbar()
 {
     ui->pause_toolButton->setDisabled(true);
     ui->play_toolButton->setEnabled(true);
@@ -101,7 +129,7 @@ void MainWindow::initEncodingList()
             mDelegates->encoding, &EncodingDelegate::showAs);
 }
 
-void MainWindow::initTableWidget()
+void MainWindow::initTable()
 {
     ui->tableView->setItemDelegateForColumn(0, mDelegates->time);
     ui->tableView->setItemDelegateForColumn(1, mDelegates->time);
@@ -118,43 +146,54 @@ void MainWindow::initTableWidget()
     ui->tableView->setFont(fixedFont);
 }
 
-void MainWindow::initDocks()
+void MainWindow::initRightFilteredTable()
 {
-    mSearchDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
-    mSearchDock->setWidget(mSearchWidget);
-    addDockWidget(Qt::RightDockWidgetArea, mSearchDock);
+    ui->filtered_tableView->setItemDelegateForColumn(0, mDelegates->time);
+    ui->filtered_tableView->setItemDelegateForColumn(1, mDelegates->time);
+    ui->filtered_tableView->setItemDelegateForColumn(2, mDelegates->id);
+    ui->filtered_tableView->setItemDelegateForColumn(3, mDelegates->encoding);
+    ui->filtered_tableView->setModel(mSearch->getProxyModel());
+    ui->filtered_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    mFilteredDock->setAllowedAreas(Qt::RightDockWidgetArea | Qt::BottomDockWidgetArea);
-    mFilteredDock->setWidget(mFilteredWidget);
-    addDockWidget(Qt::BottomDockWidgetArea, mFilteredDock);
+    //ui->filtered_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->filtered_tableView->horizontalHeader()->setStretchLastSection(true);
+
+    QFont fixedFont("Monospace");
+    fixedFont.setStyleHint(QFont::TypeWriter);
+    ui->filtered_tableView->setFont(fixedFont);
 }
 
-void MainWindow::initPortLabels()
+void MainWindow::initBottomSearch()
 {
+    connect(ui->setA_pushButton, &QPushButton::clicked,
+            this, [this]()
+            {
+                QString filter = ui->editA_plainTextEdit->toPlainText();
+                mSearch->setFilterA(filter);
+            }
+    );
+    connect(ui->setB_pushButton, &QPushButton::clicked,
+            this, [this]()
+            {
+                QString filter = ui->editB_plainTextEdit->toPlainText();
+                mSearch->setFilterB(filter);
+            }
+    );
+    connect(mSearch, &Search::filterAChanged,
+            ui->currA_plainTextEdit, &QPlainTextEdit::setPlainText);
+    connect(mSearch, &Search::filterBChanged,
+            ui->currB_plainTextEdit, &QPlainTextEdit::setPlainText);
+
     connect(mSettingsDialog, &SettingsDialog::aliasAChanged,
             this, [this](const QString& aliasA)
             {
-                ui->portA_label->setText(QString("Port A (%1)").arg(aliasA));
+                ui->portA_groupBox->setTitle(QString("Port A (%1)").arg(aliasA));
             }
     );
     connect(mSettingsDialog, &SettingsDialog::aliasBChanged,
             this, [this](const QString& aliasB)
             {
-                ui->portB_label->setText(QString("Port B (%1)").arg(aliasB));
-            }
-    );
-    connect(mSettingsDialog, &SettingsDialog::colorAChanged,
-            this, [this](const QColor& colorA)
-            {
-                QString styleSheetA = QString("QLabel {color : %1}").arg(colorA.name());
-                ui->portA_label->setStyleSheet(styleSheetA);
-            }
-    );
-    connect(mSettingsDialog, &SettingsDialog::colorBChanged,
-            this, [this](const QColor& colorB)
-            {
-                QString styleSheetB = QString("QLabel {color : %1}").arg(colorB.name());
-                ui->portB_label->setStyleSheet(styleSheetB);
+                ui->portB_groupBox->setTitle(QString("Port B (%1)").arg(aliasB));
             }
     );
 }
@@ -174,7 +213,7 @@ void MainWindow::play()
                            InitUart::Parity::PARITY_NONE,
                            InitUart::Stop::STOP_1bit);
 
-    mTimer->start(1000);
+    mTimer->start(500);
 }
 
 void MainWindow::pause()
