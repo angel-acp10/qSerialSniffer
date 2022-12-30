@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>857</width>
-    <height>527</height>
+    <width>971</width>
+    <height>615</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -234,7 +234,7 @@
                <enum>Qt::Horizontal</enum>
               </property>
               <widget class="QWidget" name="monitor_widget" native="true">
-               <layout class="QVBoxLayout" name="monitor_layout">
+               <layout class="QVBoxLayout" name="verticalLayout_7">
                 <property name="leftMargin">
                  <number>0</number>
                 </property>
@@ -248,19 +248,47 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="label">
-                  <property name="text">
-                   <string>Monitor</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QTableView" name="tableView"/>
+                 <layout class="QVBoxLayout" name="verticalLayout_6">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_7">
+                    <item>
+                     <widget class="QLabel" name="label">
+                      <property name="text">
+                       <string>Monitor</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_2">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="autoscrollMonitor_checkBox">
+                      <property name="text">
+                       <string>AutoScroll</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <widget class="QTableView" name="tableView"/>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </widget>
               <widget class="QWidget" name="filteredMonitor_widget" native="true">
-               <layout class="QVBoxLayout" name="filteredMonitor_layout">
+               <layout class="QHBoxLayout" name="horizontalLayout_9">
                 <property name="leftMargin">
                  <number>0</number>
                 </property>
@@ -274,14 +302,42 @@
                  <number>0</number>
                 </property>
                 <item>
-                 <widget class="QLabel" name="label_2">
-                  <property name="text">
-                   <string>Filtered monitor</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
-                 <widget class="QTableView" name="filtered_tableView"/>
+                 <layout class="QVBoxLayout" name="verticalLayout_8">
+                  <item>
+                   <layout class="QHBoxLayout" name="horizontalLayout_8">
+                    <item>
+                     <widget class="QLabel" name="label_2">
+                      <property name="text">
+                       <string>Filtered monitor</string>
+                      </property>
+                     </widget>
+                    </item>
+                    <item>
+                     <spacer name="horizontalSpacer_3">
+                      <property name="orientation">
+                       <enum>Qt::Horizontal</enum>
+                      </property>
+                      <property name="sizeHint" stdset="0">
+                       <size>
+                        <width>40</width>
+                        <height>20</height>
+                       </size>
+                      </property>
+                     </spacer>
+                    </item>
+                    <item>
+                     <widget class="QCheckBox" name="autoscrollFilteredMonitor_checkBox">
+                      <property name="text">
+                       <string>AutoScroll</string>
+                      </property>
+                     </widget>
+                    </item>
+                   </layout>
+                  </item>
+                  <item>
+                   <widget class="QTableView" name="filtered_tableView"/>
+                  </item>
+                 </layout>
                 </item>
                </layout>
               </widget>

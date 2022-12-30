@@ -171,7 +171,18 @@ void MainWindow::initTable()
                 QObject::disconnect(*connection);
                 for(int i=0; i<3; i++)
                     ui->tableView->resizeColumnToContents(i);
-            });
+            }
+    );
+
+    // keep qtableview scrolled to the last inserted
+    ui->autoscrollMonitor_checkBox->setCheckState(Qt::Checked);
+    connect(mFragModel, &QAbstractItemModel::rowsInserted,
+            this, [this]()
+            {
+                if(ui->autoscrollMonitor_checkBox->isChecked())
+                    ui->tableView->scrollToBottom();
+            }
+    );
 }
 
 void MainWindow::initRightFilteredTable()
@@ -201,7 +212,18 @@ void MainWindow::initRightFilteredTable()
                 QObject::disconnect(*connection);
                 for(int i=0; i<3; i++)
                     ui->filtered_tableView->resizeColumnToContents(i);
-            });
+            }
+    );
+
+    // keep qtableview scrolled to the last inserted row
+    ui->autoscrollFilteredMonitor_checkBox->setCheckState(Qt::Checked);
+    connect(mSearch->getProxyModel(), &QAbstractItemModel::rowsInserted,
+            this, [this]()
+            {
+                if(ui->autoscrollFilteredMonitor_checkBox->isChecked())
+                    ui->filtered_tableView->scrollToBottom();
+            }
+    );
 }
 
 void MainWindow::initBottomSearch()
