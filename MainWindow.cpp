@@ -147,10 +147,10 @@ void MainWindow::initTable()
     ui->tableView->setItemDelegateForColumn(1, mDelegates->time);
     ui->tableView->setItemDelegateForColumn(2, mDelegates->id);
     ui->tableView->setItemDelegateForColumn(3, mDelegates->encoding);
-    ui->tableView->setModel(mFragModel);
-    ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    //ui->tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->tableView->setModel(mFragModel);
+
+    ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
     QFont fixedFont("Monospace");
@@ -162,6 +162,16 @@ void MainWindow::initTable()
 
     idx = ui->vertical_splitter->indexOf(ui->central_widget);
     ui->vertical_splitter->setCollapsible(idx, false);
+
+    // one time connection to adjust time and id columns the first time data is received
+    QMetaObject::Connection * const connection = new QMetaObject::Connection;
+    *connection = connect(mFragModel, &QAbstractItemModel::rowsInserted,
+            this, [this, connection] ()
+            {
+                QObject::disconnect(*connection);
+                for(int i=0; i<3; i++)
+                    ui->tableView->resizeColumnToContents(i);
+            });
 }
 
 void MainWindow::initRightFilteredTable()
@@ -170,10 +180,10 @@ void MainWindow::initRightFilteredTable()
     ui->filtered_tableView->setItemDelegateForColumn(1, mDelegates->time);
     ui->filtered_tableView->setItemDelegateForColumn(2, mDelegates->id);
     ui->filtered_tableView->setItemDelegateForColumn(3, mDelegates->encoding);
-    ui->filtered_tableView->setModel(mSearch->getProxyModel());
-    ui->filtered_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
 
-    //ui->filtered_tableView->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->filtered_tableView->setModel(mSearch->getProxyModel());
+
+    ui->filtered_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
     ui->filtered_tableView->horizontalHeader()->setStretchLastSection(true);
 
     QFont fixedFont("Monospace");
@@ -182,6 +192,16 @@ void MainWindow::initRightFilteredTable()
 
     int idx = ui->horizontal_splitter->indexOf(ui->filteredMonitor_widget);
     ui->horizontal_splitter->setCollapsible(idx, false);
+
+    // one time connection to adjust time and id columns the first time data is received
+    QMetaObject::Connection * const connection = new QMetaObject::Connection;
+    *connection = connect(mSearch->getProxyModel(), &QAbstractItemModel::rowsInserted,
+            this, [this, connection] ()
+            {
+                QObject::disconnect(*connection);
+                for(int i=0; i<3; i++)
+                    ui->filtered_tableView->resizeColumnToContents(i);
+            });
 }
 
 void MainWindow::initBottomSearch()
@@ -218,8 +238,12 @@ void MainWindow::initBottomSearch()
             }
     );
 
-    int idx = ui->vertical_splitter->indexOf(ui->search_widget);
-    ui->vertical_splitter->setCollapsible(idx, false);
+    int centralIdx = ui->vertical_splitter->indexOf(ui->central_widget);
+    int searchIdx = ui->vertical_splitter->indexOf(ui->search_widget);
+    ui->vertical_splitter->setCollapsible(searchIdx, false);
+
+    ui->vertical_splitter->setStretchFactor(centralIdx, 10);
+    ui->vertical_splitter->setStretchFactor(searchIdx, 1);
 }
 
 void MainWindow::play()
