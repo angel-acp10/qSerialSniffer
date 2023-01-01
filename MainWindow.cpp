@@ -39,6 +39,17 @@ MainWindow::MainWindow(QWidget *parent)
     initBottomSearch();
     initBottomTimeDiff();
 
+    initHideColumn_check(ui->number_checkBox,
+                         FragmentsModel::Column::kNumber,
+                         false);
+    initHideColumn_check(ui->start_checkBox,
+                         FragmentsModel::Column::kStart,
+                         true);
+    initHideColumn_check(ui->end_checkBox,
+                         FragmentsModel::Column::kEnd,
+                         true);
+    initAutoScroll_check();
+
 
     connect(mCmds->getId, &GetId::received,
             this, [this](GetId::Status, QString id)
@@ -214,16 +225,6 @@ void MainWindow::initTable()
                     ui->tableView->resizeColumnToContents(i);
             }
     );
-
-    // keep qtableview scrolled to the last inserted
-    ui->autoscrollMonitor_checkBox->setCheckState(Qt::Checked);
-    connect(mFragModel, &QAbstractItemModel::rowsInserted,
-            this, [this]()
-            {
-                if(ui->autoscrollMonitor_checkBox->isChecked())
-                    ui->tableView->scrollToBottom();
-            }
-    );
 }
 
 void MainWindow::initRightFilteredTable()
@@ -257,16 +258,6 @@ void MainWindow::initRightFilteredTable()
                     ui->filtered_tableView->resizeColumnToContents(i);
             }
     );
-
-    // keep qtableview scrolled to the last inserted row
-    ui->autoscrollFilteredMonitor_checkBox->setCheckState(Qt::Checked);
-    connect(mSearch->getProxyModel(), &QAbstractItemModel::rowsInserted,
-            this, [this]()
-            {
-                if(ui->autoscrollFilteredMonitor_checkBox->isChecked())
-                    ui->filtered_tableView->scrollToBottom();
-            }
-    );
 }
 
 void MainWindow::initBottomSearch()
@@ -293,13 +284,27 @@ void MainWindow::initBottomSearch()
     connect(mSettingsDialog, &SettingsDialog::aliasAChanged,
             this, [this](const QString& aliasA)
             {
-                ui->portA_groupBox->setTitle(QString("Port A (%1)").arg(aliasA));
+                ui->searchPortA_label->setText(QString("Port A (%1)").arg(aliasA));
             }
     );
     connect(mSettingsDialog, &SettingsDialog::aliasBChanged,
             this, [this](const QString& aliasB)
             {
-                ui->portB_groupBox->setTitle(QString("Port B (%1)").arg(aliasB));
+                ui->searchPortB_label->setText(QString("Port B (%1)").arg(aliasB));
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::colorAChanged,
+            this, [this](const QColor& colorA)
+            {
+                QString styleSheetA = QString("QLabel {color : %1}").arg(colorA.name());
+                ui->searchPortA_label->setStyleSheet(styleSheetA);
+            }
+    );
+    connect(mSettingsDialog, &SettingsDialog::colorBChanged,
+            this, [this](const QColor& colorB)
+            {
+                QString styleSheetB = QString("QLabel {color : %1}").arg(colorB.name());
+                ui->searchPortB_label->setStyleSheet(styleSheetB);
             }
     );
 
@@ -313,7 +318,6 @@ void MainWindow::initBottomSearch()
 
 void MainWindow::initBottomTimeDiff()
 {
-    //ui->timeDiff_label->setPixmap(QPixmap(":/images/stopwatch.svg"));
     ui->timeDiff_label->setText("Time difference");
     // time difference label
     connect(mTimeDiff, &TimeDiff::timeDiffChanged,
@@ -365,6 +369,63 @@ void MainWindow::initBottomTimeDiff()
             {
                 for(int i=0; i<mTimeDiff->getModel()->columnCount(); i++)
                     ui->timeDiff_tableView->resizeColumnToContents(i);
+            }
+    );
+}
+
+void MainWindow::initHideColumn_check(QCheckBox * checkBox,
+                                      FragmentsModel::Column column,
+                                      bool hide)
+{
+    if(hide)
+    {
+        checkBox->setCheckState(Qt::Unchecked);
+        ui->tableView->hideColumn(column);
+        ui->filtered_tableView->hideColumn(column);
+    }
+    else
+    {
+        checkBox->setCheckState(Qt::Checked);
+        ui->tableView->showColumn(column);
+        ui->filtered_tableView->showColumn(column);
+    }
+
+    connect(checkBox, &QCheckBox::stateChanged,
+            this, [this, column] (int state)
+            {
+                switch(static_cast<Qt::CheckState>(state))
+                {
+                case Qt::Checked:
+                    ui->tableView->showColumn(column);
+                    ui->filtered_tableView->showColumn(column);
+                    break;
+                case Qt::PartiallyChecked:
+                case Qt::Unchecked:
+                    ui->tableView->hideColumn(column);
+                    ui->filtered_tableView->hideColumn(column);
+                    break;
+                }
+            }
+    );
+}
+
+void MainWindow::initAutoScroll_check()
+{
+    ui->autoscoll_checkBox->setCheckState(Qt::Checked);
+
+    // keep qtableview scrolled to the last inserted row
+    connect(mFragModel, &QAbstractItemModel::rowsInserted,
+            this, [this]()
+            {
+                if(ui->autoscoll_checkBox->isChecked())
+                    ui->tableView->scrollToBottom();
+            }
+    );
+    connect(mSearch->getProxyModel(), &QAbstractItemModel::rowsInserted,
+            this, [this]()
+            {
+                if(ui->autoscoll_checkBox->isChecked())
+                    ui->filtered_tableView->scrollToBottom();
             }
     );
 }

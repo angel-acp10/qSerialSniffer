@@ -14,6 +14,7 @@
 #include "table/Delegates.h"
 #include "search/Search.h"
 #include "table/TimeDiff.h"
+#include <QCheckBox>
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -36,6 +37,10 @@ private:
     void initBottomSearch();
     void initBottomTimeDiff();
 
+    void initHideColumn_check(QCheckBox * checkBox,
+                              FragmentsModel::Column column,
+                              bool hide);
+    void initAutoScroll_check();
 
 private slots:
     void play();
