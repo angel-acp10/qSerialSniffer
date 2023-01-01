@@ -15,6 +15,9 @@ public:
     Fragment();
     ~Fragment();
 
+    quint64 getNumber() const;
+    void setNumber(const quint64 number);
+
     Port getPort() const;
     void setPort(const Port port);
 
@@ -29,6 +32,7 @@ public:
 
 
 private:
+    quint64 m_num;
     Port m_port;
     quint64 m_startAcumUs;
     quint64 m_endAcumUs;

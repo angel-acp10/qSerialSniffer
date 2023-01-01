@@ -23,7 +23,7 @@ int FragmentsModel::rowCount(const QModelIndex &parent) const
 int FragmentsModel::columnCount(const QModelIndex &parent) const
 {
     (void)parent;
-    return 4; // uartId, startTStamp, endTStamp, data
+    return 5; // #, startTStamp, endTStamp, uartId, data
 }
 
 QVariant FragmentsModel::data(const QModelIndex &index, int role) const
@@ -31,12 +31,14 @@ QVariant FragmentsModel::data(const QModelIndex &index, int role) const
     if(!index.isValid() || role != Qt::DisplayRole)
         return QVariant();
 
-    switch(index.column())
+    int row = index.row();
+    switch(static_cast<Column>(index.column()))
     {
-    case 0:     return m_fragments[index.row()].getStartAcumUs();
-    case 1:     return m_fragments[index.row()].getEndAcumUs();
-    case 2:     return m_fragments[index.row()].getPort();
-    case 3:     return m_fragments[index.row()].getData();
+    case Column::kNumber:   return m_fragments[row].getNumber();
+    case Column::kStart:    return m_fragments[row].getStartAcumUs();
+    case Column::kEnd:      return m_fragments[row].getEndAcumUs();
+    case Column::kId:       return m_fragments[row].getPort();
+    case Column::kData:     return m_fragments[row].getData();
     default:    return QVariant();
     }
 }
@@ -49,12 +51,13 @@ QVariant FragmentsModel::headerData(int section, Qt::Orientation orientation, in
     if(orientation != Qt::Horizontal)
         return QVariant();
 
-    switch(section)
+    switch(static_cast<Column>(section))
     {
-    case 0:     return QString("Start TS");
-    case 1:     return QString("End TS");
-    case 2:     return QString("ID");
-    case 3:     return QString("Data");
+    case Column::kNumber:   return QString("#");
+    case Column::kStart:    return QString("Start TS");
+    case Column::kEnd:      return QString("End TS");
+    case Column::kId:       return QString("ID");
+    case Column::kData:     return QString("Data");
     default:    return QVariant();
     }
 }

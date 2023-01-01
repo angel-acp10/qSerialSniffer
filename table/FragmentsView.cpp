@@ -1,4 +1,5 @@
 #include "FragmentsView.h"
+#include "FragmentsModel.h"
 
 #include <qevent.h>
 #include <QMenu>
@@ -20,7 +21,8 @@ void FragmentsView::contextMenuEvent(QContextMenuEvent *event)
         return;
 
     int col = index.column();
-    if(col == 0 || col == 1)
+    if(col == FragmentsModel::Column::kStart ||
+       col == FragmentsModel::Column::kEnd)
     {
         // builds the context menu
         QMenu menu(this);

@@ -10,6 +10,15 @@ Fragment::~Fragment()
 
 }
 
+quint64 Fragment::getNumber() const
+{
+    return m_num;
+}
+void Fragment::setNumber(const quint64 number)
+{
+    m_num = number;
+}
+
 Fragment::Port Fragment::getPort() const
 {
     return m_port;

@@ -56,8 +56,9 @@ MainWindow::MainWindow(QWidget *parent)
     connect(mCmds->getAllQueue, &GetAllQueue::received,
             this, [this](QList<Fragment> lst)
             {
-                for(const auto &frag : lst)
+                for(auto &frag : lst)
                 {
+                    frag.setNumber(mFragModel->rowCount());
                     mFragModel->appendFragment(frag);
                 }
             });
@@ -183,10 +184,10 @@ void MainWindow::initTable()
 {
     ui->tableView->setTimeDifferenceObject(mTimeDiff);
 
-    ui->tableView->setItemDelegateForColumn(0, mDelegates->time);
-    ui->tableView->setItemDelegateForColumn(1, mDelegates->time);
-    ui->tableView->setItemDelegateForColumn(2, mDelegates->id);
-    ui->tableView->setItemDelegateForColumn(3, mDelegates->encoding);
+    ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kStart, mDelegates->time);
+    ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kEnd, mDelegates->time);
+    ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kId, mDelegates->id);
+    ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kData, mDelegates->encoding);
 
     ui->tableView->setModel(mFragModel);
 
@@ -209,7 +210,7 @@ void MainWindow::initTable()
             this, [this, connection] ()
             {
                 QObject::disconnect(*connection);
-                for(int i=0; i<3; i++)
+                for(int i=0; i<mFragModel->columnCount(); i++)
                     ui->tableView->resizeColumnToContents(i);
             }
     );
@@ -229,10 +230,10 @@ void MainWindow::initRightFilteredTable()
 {
     ui->filtered_tableView->setTimeDifferenceObject(mTimeDiff);
 
-    ui->filtered_tableView->setItemDelegateForColumn(0, mDelegates->time);
-    ui->filtered_tableView->setItemDelegateForColumn(1, mDelegates->time);
-    ui->filtered_tableView->setItemDelegateForColumn(2, mDelegates->id);
-    ui->filtered_tableView->setItemDelegateForColumn(3, mDelegates->encoding);
+    ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kStart, mDelegates->time);
+    ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kEnd, mDelegates->time);
+    ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kId, mDelegates->id);
+    ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kData, mDelegates->encoding);
 
     ui->filtered_tableView->setModel(mSearch->getProxyModel());
 
@@ -252,7 +253,7 @@ void MainWindow::initRightFilteredTable()
             this, [this, connection] ()
             {
                 QObject::disconnect(*connection);
-                for(int i=0; i<3; i++)
+                for(int i=0; i<mSearch->getProxyModel()->columnCount(); i++)
                     ui->filtered_tableView->resizeColumnToContents(i);
             }
     );
@@ -344,10 +345,10 @@ void MainWindow::initBottomTimeDiff()
     connect(ui->filtered_tableView, &FragmentsView::selectForCompare,
             mTimeDiff, &TimeDiff::setFirstFragment);
 
-    ui->timeDiff_tableView->setItemDelegateForColumn(0, mDelegates->time);
-    ui->timeDiff_tableView->setItemDelegateForColumn(1, mDelegates->time);
-    ui->timeDiff_tableView->setItemDelegateForColumn(2, mDelegates->id);
-    ui->timeDiff_tableView->setItemDelegateForColumn(3, mDelegates->encoding);
+    ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kStart, mDelegates->time);
+    ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kEnd, mDelegates->time);
+    ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kId, mDelegates->id);
+    ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kData, mDelegates->encoding);
 
     ui->timeDiff_tableView->setModel(mTimeDiff->getModel());
 
@@ -362,7 +363,7 @@ void MainWindow::initBottomTimeDiff()
     connect(mTimeDiff->getModel(), &QAbstractItemModel::rowsInserted,
             this, [this] ()
             {
-                for(int i=0; i<3; i++)
+                for(int i=0; i<mTimeDiff->getModel()->columnCount(); i++)
                     ui->timeDiff_tableView->resizeColumnToContents(i);
             }
     );

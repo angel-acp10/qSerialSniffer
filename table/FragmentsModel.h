@@ -10,6 +10,15 @@ class FragmentsModel : public QAbstractTableModel
     Q_OBJECT
 
 public:
+    enum Column
+    {
+        kNumber=0,
+        kStart,
+        kEnd,
+        kId,
+        kData
+    };
+
     explicit FragmentsModel(QObject *parent = nullptr);
 
     void appendFragment(const Fragment &frag);

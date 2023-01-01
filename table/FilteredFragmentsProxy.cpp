@@ -1,5 +1,6 @@
 #include "FilteredFragmentsProxy.h"
 #include "Fragment.h"
+#include "FragmentsModel.h"
 
 #include <QDebug>
 
@@ -24,10 +25,10 @@ bool FilteredFragmentsProxy::filterAcceptsRow(
     QString name;
     bool ok;
 
-    index = sourceModel()->index(sourceRow, 3, sourceParent);
+    index = sourceModel()->index(sourceRow, FragmentsModel::Column::kData, sourceParent);
     QByteArray array = sourceModel()->data(index).toByteArray();
 
-    index = sourceModel()->index(sourceRow, 2, sourceParent);
+    index = sourceModel()->index(sourceRow, FragmentsModel::Column::kId, sourceParent);
     int id = sourceModel()->data(index).toInt();
 
     ArrayNode::ArrayInfo arrInfo = {
