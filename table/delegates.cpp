@@ -30,6 +30,16 @@ QString TimeDelegate::displayText(const QVariant &value, const QLocale &locale) 
     quint64 val = value.toUInt(&ok);
     if(!ok)
         return "";
+    return usToString(val);
+}
+
+QString TimeDelegate::usToString(const quint64 val, const bool ret0)
+{
+    if(val == 0)
+    {
+        if(ret0)    return ("00:00:00:000000");
+        else        return "";
+    }
 
     quint64 aux;
     quint64 us = val % US_PER_SEC;

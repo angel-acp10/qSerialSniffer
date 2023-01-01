@@ -13,6 +13,7 @@
 #include "table/FragmentsModel.h"
 #include "table/Delegates.h"
 #include "search/Search.h"
+#include "table/TimeDiff.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -33,6 +34,7 @@ private:
     void initTable();
     void initRightFilteredTable();
     void initBottomSearch();
+    void initBottomTimeDiff();
 
 
 private slots:
@@ -50,6 +52,7 @@ private:
     FragmentsModel *mFragModel;
     Delegates *mDelegates;
     Search *mSearch;
+    TimeDiff *mTimeDiff;
     QTimer *mTimer;
 
 };

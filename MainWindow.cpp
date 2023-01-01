@@ -19,6 +19,7 @@ MainWindow::MainWindow(QWidget *parent)
       mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
       mFragModel(new FragmentsModel(this)),
       mSearch(new Search(mFragModel, mSettingsDialog, this)),
+      mTimeDiff(new TimeDiff(this)),
       mTimer(new QTimer)
 {
     ui->setupUi(this);
@@ -36,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent)
     initTable();
     initRightFilteredTable();
     initBottomSearch();
+    initBottomTimeDiff();
 
 
     connect(mCmds->getId, &GetId::received,
@@ -117,17 +119,53 @@ void MainWindow::initLeftToolbar()
 
     connect(ui->reset_toolButton, &QToolButton::clicked, mFragModel, &FragmentsModel::reset);
 
-    ui->search_toolButton->setCheckable(true);
-    ui->search_toolButton->setChecked(false);
-    ui->search_widget->setVisible(false);
-    connect(ui->search_toolButton, &QToolButton::clicked,
-            ui->search_widget, &QWidget::setVisible);
+    ui->bottom_stackedWidget->setVisible(false);
 
     ui->filteredTerminal_toolButton->setCheckable(true);
     ui->filteredTerminal_toolButton->setChecked(false);
+    ui->search_toolButton->setCheckable(true);
+    ui->search_toolButton->setChecked(false);
+    ui->timeDiff_toolButton->setCheckable(true); 
+    ui->timeDiff_toolButton->setChecked(false);
+    
+    // filtered monitor
     ui->filteredMonitor_widget->setVisible(false);
     connect(ui->filteredTerminal_toolButton, &QToolButton::clicked,
             ui->filteredMonitor_widget, &QWidget::setVisible);
+
+
+    connect(ui->search_toolButton, &QToolButton::clicked,
+            this, [this](bool checked)
+            {
+                // display corresponfing widget on stacked widget
+                int idx = ui->bottom_stackedWidget->indexOf(ui->search_widgetPage);
+                ui->bottom_stackedWidget->setCurrentIndex(idx);
+
+                // change stacked widget visibility
+                ui->bottom_stackedWidget->setVisible(checked);
+
+                // uncheck any other toolbutton whose associated widget
+                // is also in stacked widget
+                ui->timeDiff_toolButton->setChecked(false);
+            }
+    );
+
+    connect(ui->timeDiff_toolButton, &QToolButton::clicked,
+            this, [this](bool checked)
+            {
+                // display corresponfing widget on stacked widget
+                int idx = ui->bottom_stackedWidget->indexOf(ui->timeDiff_widgetPage);
+                ui->bottom_stackedWidget->setCurrentIndex(idx);
+
+                // change stacked widget visibility
+                ui->bottom_stackedWidget->setVisible(checked);
+
+                // uncheck any other toolbutton whose associated widget
+                // is also in stacked widget
+                ui->search_toolButton->setChecked(false);
+            }
+    );
+
 }
 
 void MainWindow::initEncodingList()
@@ -143,6 +181,8 @@ void MainWindow::initEncodingList()
 
 void MainWindow::initTable()
 {
+    ui->tableView->setTimeDifferenceObject(mTimeDiff);
+
     ui->tableView->setItemDelegateForColumn(0, mDelegates->time);
     ui->tableView->setItemDelegateForColumn(1, mDelegates->time);
     ui->tableView->setItemDelegateForColumn(2, mDelegates->id);
@@ -187,6 +227,8 @@ void MainWindow::initTable()
 
 void MainWindow::initRightFilteredTable()
 {
+    ui->filtered_tableView->setTimeDifferenceObject(mTimeDiff);
+
     ui->filtered_tableView->setItemDelegateForColumn(0, mDelegates->time);
     ui->filtered_tableView->setItemDelegateForColumn(1, mDelegates->time);
     ui->filtered_tableView->setItemDelegateForColumn(2, mDelegates->id);
@@ -261,11 +303,69 @@ void MainWindow::initBottomSearch()
     );
 
     int centralIdx = ui->vertical_splitter->indexOf(ui->central_widget);
-    int searchIdx = ui->vertical_splitter->indexOf(ui->search_widget);
-    ui->vertical_splitter->setCollapsible(searchIdx, false);
+    int bottomStackedIdx = ui->vertical_splitter->indexOf(ui->bottom_stackedWidget);
+    ui->vertical_splitter->setCollapsible(bottomStackedIdx, false);
 
     ui->vertical_splitter->setStretchFactor(centralIdx, 10);
-    ui->vertical_splitter->setStretchFactor(searchIdx, 1);
+    ui->vertical_splitter->setStretchFactor(bottomStackedIdx, 1);
+}
+
+void MainWindow::initBottomTimeDiff()
+{
+    //ui->timeDiff_label->setPixmap(QPixmap(":/images/stopwatch.svg"));
+    ui->timeDiff_label->setText("Time difference");
+    // time difference label
+    connect(mTimeDiff, &TimeDiff::timeDiffChanged,
+            this, [this](const qint64 usDiff)
+            {
+                QString hourMinSecMicros = TimeDelegate::usToString(abs(usDiff), true);
+                QString millis = QString("%1.%2 ms")
+                        .arg(abs(usDiff)/1000)
+                        .arg(abs(usDiff)%1000, 3, 10, QLatin1Char('0'));
+                if(usDiff < 0)
+                {
+                    hourMinSecMicros = "-" + hourMinSecMicros;
+                    millis = "-" + millis;
+                }
+                ui->timeDiff_label->setText( QString("Time difference is: %1 (%2)")
+                                            .arg(millis, hourMinSecMicros) );
+            }
+    );
+
+    // connect tableview signals
+    connect(ui->tableView, &FragmentsView::selectForCompare,
+            mTimeDiff, &TimeDiff::setFirstFragment);
+    connect(ui->tableView, &FragmentsView::compareWithSelected,
+            mTimeDiff, &TimeDiff::setSecondFragment);
+
+    // connect filtered tableview signals
+    connect(ui->filtered_tableView, &FragmentsView::selectForCompare,
+            mTimeDiff, &TimeDiff::setFirstFragment);
+    connect(ui->filtered_tableView, &FragmentsView::selectForCompare,
+            mTimeDiff, &TimeDiff::setFirstFragment);
+
+    ui->timeDiff_tableView->setItemDelegateForColumn(0, mDelegates->time);
+    ui->timeDiff_tableView->setItemDelegateForColumn(1, mDelegates->time);
+    ui->timeDiff_tableView->setItemDelegateForColumn(2, mDelegates->id);
+    ui->timeDiff_tableView->setItemDelegateForColumn(3, mDelegates->encoding);
+
+    ui->timeDiff_tableView->setModel(mTimeDiff->getModel());
+
+    ui->timeDiff_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->timeDiff_tableView->horizontalHeader()->setStretchLastSection(true);
+
+    QFont fixedFont("Monospace");
+    fixedFont.setStyleHint(QFont::TypeWriter);
+    ui->timeDiff_tableView->setFont(fixedFont);
+
+    // connection to adjust time and id columns
+    connect(mTimeDiff->getModel(), &QAbstractItemModel::rowsInserted,
+            this, [this] ()
+            {
+                for(int i=0; i<3; i++)
+                    ui->timeDiff_tableView->resizeColumnToContents(i);
+            }
+    );
 }
 
 void MainWindow::play()

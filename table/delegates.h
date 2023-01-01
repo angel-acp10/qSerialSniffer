@@ -41,11 +41,12 @@ class TimeDelegate : public QStyledItemDelegate
 public:
     explicit TimeDelegate(QObject *parent = nullptr);
     QString displayText(const QVariant &value, const QLocale &locale) const override;
+    static QString usToString(const quint64 value, const bool ret0=false);
 
 private:
-    const quint64 US_PER_SEC = 1000000;
-    const quint64 SEC_PER_MIN = 60;
-    const quint64 MIN_PER_HOUR = 60;
+    static const quint64 US_PER_SEC = 1000000;
+    static const quint64 SEC_PER_MIN = 60;
+    static const quint64 MIN_PER_HOUR = 60;
 };
 
 //------------------------

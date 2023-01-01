@@ -7,5 +7,7 @@
         <file>images/search.svg</file>
         <file>images/terminal.svg</file>
         <file>images/trash3.svg</file>
+        <file>images/stopwatch.svg</file>
+        <file>images/stopwatch-fill.svg</file>
     </qresource>
 </RCC>

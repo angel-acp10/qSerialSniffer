@@ -21,15 +21,14 @@ SOURCES += \
     search/ExpressionTree.cpp \
     search/Search.cpp \
     search/TreeNode.cpp \
-    #table/EncodingDelegate.cpp \
     table/FilteredFragmentsProxy.cpp \
     table/Fragment.cpp \
     main.cpp \
     MainWindow.cpp \
     table/FragmentsModel.cpp \
-    #table/IdDelegate.cpp \
-    #table/TimeDelegate.cpp \
-    table/Delegates.cpp
+    table/Delegates.cpp \
+    table/FragmentsView.cpp \
+    table/TimeDiff.cpp
 
 HEADERS += \
     MainWindow.h \
@@ -45,13 +44,12 @@ HEADERS += \
     search/ExpressionTree.h \
     search/Search.h \
     search/TreeNode.h \
-    #table/EncodingDelegate.h \
     table/FilteredFragmentsProxy.h \
     table/Fragment.h \
     table/FragmentsModel.h \
-    #table/IdDelegate.h \
-    #table/TimeDelegate.h \
-    table/Delegates.h
+    table/Delegates.h \
+    table/FragmentsView.h \
+    table/TimeDiff.h
 
 FORMS += \
     MainWindow.ui \
