@@ -13,7 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       mSettingsDialog(new SettingsDialog(this)),
-      mSerial(new SerialIO(100, 3, this)), ///////// to be modified
+      mSerial(new SerialIO()),
       mTStamp0(new TimeStamp(this)),
       mTStamp1(new TimeStamp(this)),
       mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
@@ -28,8 +28,6 @@ MainWindow::MainWindow(QWidget *parent)
                                mSearch->getProxyModel(),
                                mSettingsDialog,
                                this);
-
-    mSerial->start(); ///////// to be modified
 
     initTopPortLabels();
     initLeftToolbar();
@@ -50,6 +48,8 @@ MainWindow::MainWindow(QWidget *parent)
                          true);
     initAutoScroll_check();
 
+    mSettingsDialog->loadSettings("settings.json");
+
 
     connect(mCmds->getId, &GetId::received,
             this, [this](GetId::Status, QString id)
@@ -57,13 +57,6 @@ MainWindow::MainWindow(QWidget *parent)
                 QMessageBox::information(this, "GetId response", id);
             });
 
-    /*
-    connect(mSerial, &SerialIO::maxAttempts,
-            [this]()
-            {
-                QMessageBox::critical(this, "SerialPort maxxAttempts", "");
-            });
-*/
     connect(mCmds->getAllQueue, &GetAllQueue::received,
             this, [this](QList<Fragment> lst)
             {
@@ -436,16 +429,32 @@ void MainWindow::play()
     ui->pause_toolButton->setEnabled(true);
     ui->settings_toolButton->setDisabled(true);
 
-    //mSerial->setPortName("COM6");//mPort);         ///////// to be modified
-    //mSerial->setBaudRate(115200);
-    //mSerial->open(QIODevice::ReadWrite);
+    QMetaObject::invokeMethod(mSerial, "setBaudRate", Qt::AutoConnection,
+                              Q_ARG(qint32, 115200));
+
+    QMetaObject::invokeMethod(mSerial, "setDataBits", Qt::AutoConnection,
+                              Q_ARG(QSerialPort::DataBits, QSerialPort::DataBits::Data8));
+
+    QMetaObject::invokeMethod(mSerial, "setParity", Qt::AutoConnection,
+                              Q_ARG(QSerialPort::Parity, QSerialPort::Parity::NoParity));
+
+    QMetaObject::invokeMethod(mSerial, "setPortName", Qt::AutoConnection,
+                              Q_ARG(QString, mSettingsDialog->getPort()));
+
+    QMetaObject::invokeMethod(mSerial, "setStopBits", Qt::AutoConnection,
+                              Q_ARG(QSerialPort::StopBits, QSerialPort::StopBits::OneStop));
+
+    QMetaObject::invokeMethod(mSerial, "setTimeout", Qt::AutoConnection,
+                              Q_ARG(uint, 200));
+
+    QMetaObject::invokeMethod(mSerial, "open");
 
     mCmds->initUart->write(115200,
                            InitUart::DataSize::DATASIZE_8bits,
                            InitUart::Parity::PARITY_NONE,
                            InitUart::Stop::STOP_1bit);
 
-    mTimer->start(500);
+    mTimer->start(100);
 }
 
 void MainWindow::pause()
@@ -455,6 +464,7 @@ void MainWindow::pause()
     ui->pause_toolButton->setDisabled(true);
     ui->play_toolButton->setEnabled(true);
     ui->settings_toolButton->setEnabled(true);
-    //mSerial->close();                    ///////// to be modified
+
+    QMetaObject::invokeMethod(mSerial, "close");
 }
 

@@ -1,4 +1,5 @@
 #include "CommandManager.h"
+#include <QDebug>
 
 CommandManager::CommandManager(SerialIO *ser, TimeStamp *tStamp0, TimeStamp *tStamp1, QObject *parent)
     : QObject{parent},
@@ -10,7 +11,12 @@ CommandManager::CommandManager(SerialIO *ser, TimeStamp *tStamp0, TimeStamp *tSt
       m_requests(),
       m_currRequest()
 {
-    connect(m_ser, &SerialIO::maxAttempts, this, &CommandManager::dequeueRequest);
+    connect(m_ser, &SerialIO::errorOccurred,
+            this, [this](QSerialPort::SerialPortError error)
+            {
+                dequeueRequest();
+            }
+    );
     connect(m_ser, &SerialIO::replyReceived, this, &CommandManager::processReply);
     connect(this, &CommandManager::sendRequest, m_ser, &SerialIO::startRequest);
 }
@@ -27,13 +33,11 @@ void CommandManager::addRequest(QByteArray &txCmd, Command *cmdPtr)
         .txCmd = txCmd,
         .cmdPtr = cmdPtr
     };
-    //if(m_ser->isOpen())   ///////////// to be modified
-    //{
+
     m_requests.enqueue(request);
 
-    if(m_ser->getStage()==SerialIO::STAGE_IDLE)
-            dequeueRequest();
-    //}
+    if(!m_ser->isBusy())
+        dequeueRequest();
 }
 
 void CommandManager::dequeueRequest() // slot
@@ -48,10 +52,16 @@ void CommandManager::dequeueRequest() // slot
 void CommandManager::processReply(const QByteArray reply)
 {
     if(verifyChecksum(reply) == false)
+    {
         emit corruptReply(); // wrong checksum
+        qDebug() << "CommandManager corruptReply";
+    }
 
     else if(m_currRequest.txCmd[0] != reply[0])
+    {
         emit unknownReply(); // reply does not match to the requested command
+        qDebug() << "CommandManager unknownReply";
+    }
 
     else // the corresponding command reads the reply and fires the appropiate signal
         m_currRequest.cmdPtr->read(reply);

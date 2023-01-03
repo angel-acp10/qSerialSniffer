@@ -15,6 +15,8 @@ public:
     explicit SettingsDialog(QWidget *parent = nullptr);
     ~SettingsDialog();
 
+    void loadSettings(const QString &file);
+
     const QString& getPort() const;
     int getBauds() const;
     const QString& getParity() const;
@@ -45,6 +47,8 @@ private slots:
 
 private:
     Ui::SettingsDialog *ui;
+
+    QString m_file;
 
     QString m_port;
     int m_bauds;

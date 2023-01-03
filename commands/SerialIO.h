@@ -1,54 +1,53 @@
-#ifndef SERIALIO_H
-#define SERIALIO_H
+#ifndef SERIALTHREAD_H
+#define SERIALTHREAD_H
 
-#include <QMutex>
+#include <QSerialPort>
 #include <QThread>
-#include <QWaitCondition>
+#include <QObject>
+#include <QTimer>
+#include <QMutex>
 
-
-class SerialIO : public QThread
+class SerialIO : public QObject
 {
     Q_OBJECT
 
 public:
-    typedef enum
-    {
-        STAGE_OFF=0,
-        STAGE_IDLE,
-        STAGE_WRITE,
-        STAGE_READ
-    }stage_t;
-
-    explicit SerialIO(int timeout, int attempts, QObject *parent = nullptr);
+    SerialIO(QObject *parent=nullptr);
     ~SerialIO();
 
-    stage_t getStage() const;
+    bool isBusy();
 
 public slots:
-    void startRequest(/*const QString &portName,*/ const QByteArray &request);
+    // serial port control and configuration
+    void open();
+    void close();
+    void setBaudRate(const qint32 baudRate);
+    void setDataBits(const QSerialPort::DataBits dataBits);
+    void setParity(const QSerialPort::Parity parity);
+    void setPortName(const QString &name);
+    void setStopBits(const QSerialPort::StopBits stopBits);
+    void setTimeout(const unsigned int ms);
+
+    void startRequest(const QByteArray &request);
 
 signals:
     void replyReceived(const QByteArray &response);
-    void error(const QString &s);
-    void maxAttempts();
+    void errorOccurred(QSerialPort::SerialPortError error);
 
 private:
-
-
-    void run() override;
-
-    stage_t m_stage;
-    int m_timeout;
-    int m_attempts;
-    bool m_quit;
-    bool m_newRequest;
-
-
-    QString m_portName;
-    QByteArray m_request;
     QMutex m_mutex;
-    QWaitCondition m_cond;
+    bool m_busy;
+    QTimer *m_timer;
+    int m_rxLen;
+    QByteArray m_rxBuff;
+    QSerialPort *m_serial;
+    std::unique_ptr<QThread> m_thread;
+
+private slots:
+    void onReadBytes();
+    void onTimeout();
+    void onError(QSerialPort::SerialPortError error);
+
 };
 
-
-#endif // SERIALIO_H
+#endif // SERIALTHREAD_H

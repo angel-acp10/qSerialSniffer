@@ -10,6 +10,7 @@ CONFIG += c++17
 
 SOURCES += \
     SettingsDialog.cpp \
+    SettingsFile.cpp \
     TimeStamp.cpp \
     commands/Command.cpp \
     commands/CommandManager.cpp \
@@ -33,6 +34,7 @@ SOURCES += \
 HEADERS += \
     MainWindow.h \
     SettingsDialog.h \
+    SettingsFile.h \
     TimeStamp.h \
     commands/Command.h \
     commands/CommandManager.h \

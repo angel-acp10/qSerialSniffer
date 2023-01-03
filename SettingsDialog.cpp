@@ -3,6 +3,7 @@
 
 #include <QSerialPortInfo>
 #include <QMessageBox>
+#include "SettingsFile.h"
 
 SettingsDialog::SettingsDialog(QWidget *parent) :
     QDialog(parent),
@@ -25,6 +26,31 @@ SettingsDialog::SettingsDialog(QWidget *parent) :
 SettingsDialog::~SettingsDialog()
 {
     delete ui;
+}
+
+void SettingsDialog::loadSettings(const QString &file)
+{
+    m_file = file;
+
+    SettingsFile settings(m_file);
+    settings.load();
+    m_port = settings.value("port").toString();
+    m_bauds = settings.value("bauds").toInt();
+    m_parity = settings.value("parity").toString();
+    m_dataSize = settings.value("dataSize").toInt();
+    m_colorA = QColor(settings.value("colorA").toString());
+    m_colorB = QColor(settings.value("colorB").toString());
+    m_aliasA = settings.value("aliasA").toString();
+    m_aliasB = settings.value("aliasB").toString();
+
+    emit portChanged(m_port);
+    emit baudsChanged(m_bauds);
+    emit parityChanged(m_parity);
+    emit dataSizeChanged(m_dataSize);
+    emit colorAChanged(m_colorA);
+    emit colorBChanged(m_colorB);
+    emit aliasAChanged(m_aliasA);
+    emit aliasBChanged(m_aliasB);
 }
 
 const QString& SettingsDialog::getPort() const
@@ -176,6 +202,18 @@ void SettingsDialog::validateData()
         m_aliasB = aliasB;
         emit aliasBChanged(m_aliasB);
     }
+
+    SettingsFile settings(m_file);
+    settings.load();
+    settings.setValue("port", m_port);
+    settings.setValue("bauds", m_bauds);
+    settings.setValue("parity", m_parity);
+    settings.setValue("dataSize", m_dataSize);
+    settings.setValue("colorA", m_colorA.name());
+    settings.setValue("colorB", m_colorB.name());
+    settings.setValue("aliasA", m_aliasA);
+    settings.setValue("aliasB", m_aliasB);
+    settings.save();
 
     accept();
 }
