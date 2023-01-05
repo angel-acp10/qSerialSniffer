@@ -195,7 +195,7 @@ void MainWindow::initTable()
 
     ui->tableView->setModel(mFragModel);
 
-    ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     ui->tableView->horizontalHeader()->setStretchLastSection(true);
 
     QFont fixedFont("Monospace");
@@ -231,7 +231,7 @@ void MainWindow::initRightFilteredTable()
 
     ui->filtered_tableView->setModel(mSearch->getProxyModel());
 
-    ui->filtered_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->filtered_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     ui->filtered_tableView->horizontalHeader()->setStretchLastSection(true);
 
     QFont fixedFont("Monospace");
@@ -349,7 +349,7 @@ void MainWindow::initBottomTimeDiff()
 
     ui->timeDiff_tableView->setModel(mTimeDiff->getModel());
 
-    ui->timeDiff_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::ResizeToContents);
+    ui->timeDiff_tableView->verticalHeader()->setSectionResizeMode(QHeaderView::Interactive);
     ui->timeDiff_tableView->horizontalHeader()->setStretchLastSection(true);
 
     QFont fixedFont("Monospace");

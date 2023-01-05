@@ -8,6 +8,6 @@
         <file>images/terminal.svg</file>
         <file>images/trash3.svg</file>
         <file>images/stopwatch.svg</file>
-        <file>images/stopwatch-fill.svg</file>
+        <file>images/clipboard.svg</file>
     </qresource>
 </RCC>

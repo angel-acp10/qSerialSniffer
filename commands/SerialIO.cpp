@@ -2,7 +2,8 @@
 #include <QDebug>
 
 SerialIO::SerialIO(QObject *parent)
-    : QObject(parent)
+    : QObject(parent),
+      m_busy(false)
 {
     m_timer = new QTimer();
     m_timer->setSingleShot(true);
@@ -31,7 +32,6 @@ SerialIO::~SerialIO()
 
 bool SerialIO::isBusy()
 {
-    QMutexLocker locker(&m_mutex);
     return m_busy;
 }
 
@@ -70,7 +70,6 @@ void SerialIO::setTimeout(const unsigned int ms)
 
 void SerialIO::startRequest(const QByteArray &request)
 {
-    //QMutexLocker locker(&m_mutex);
     if(m_busy)
         return;
     m_busy = true;
@@ -108,7 +107,6 @@ void SerialIO::onReadBytes()
         cmdLength += 3;
         if ( m_rxLen >= cmdLength )
         {
-            QMutexLocker locker(&m_mutex);
             m_timer->stop();
             disconnect(m_serial, &QSerialPort::readyRead, this, nullptr);
             emit replyReceived(m_rxBuff.mid(0, cmdLength));
@@ -120,7 +118,6 @@ void SerialIO::onReadBytes()
 
 void SerialIO::onTimeout()
 {
-    //QMutexLocker locker(&m_mutex);
     disconnect(m_serial, &QSerialPort::readyRead, this, nullptr);
     emit errorOccurred(QSerialPort::SerialPortError::TimeoutError);
     m_busy = false;
@@ -128,7 +125,9 @@ void SerialIO::onTimeout()
 
 void SerialIO::onError(QSerialPort::SerialPortError error)
 {
-    //QMutexLocker locker(&m_mutex);
+    if(error == QSerialPort::SerialPortError::NoError)
+        return;
+
     disconnect(m_serial, &QSerialPort::readyRead, this, nullptr);
     emit errorOccurred(error);
     m_busy = false;

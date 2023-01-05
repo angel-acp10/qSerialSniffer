@@ -5,7 +5,6 @@
 #include <QThread>
 #include <QObject>
 #include <QTimer>
-#include <QMutex>
 
 class SerialIO : public QObject
 {
@@ -35,7 +34,6 @@ signals:
     void errorOccurred(QSerialPort::SerialPortError error);
 
 private:
-    QMutex m_mutex;
     bool m_busy;
     QTimer *m_timer;
     int m_rxLen;

@@ -14,9 +14,12 @@ public:
 
 protected:
     void contextMenuEvent(QContextMenuEvent *event) override;
+    void keyPressEvent(QKeyEvent *event) override;
 
 private:
     TimeDiff *m_timeDiff;
+
+    void handleCopyAction();
 
 signals:
     void selectForCompare(const QModelIndex &index);
