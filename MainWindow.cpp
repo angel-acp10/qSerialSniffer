@@ -37,9 +37,6 @@ MainWindow::MainWindow(QWidget *parent)
     initBottomSearch();
     initBottomTimeDiff();
 
-    initHideColumn_check(ui->number_checkBox,
-                         FragmentsModel::Column::kNumber,
-                         false);
     initHideColumn_check(ui->start_checkBox,
                          FragmentsModel::Column::kStart,
                          true);

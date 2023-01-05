@@ -49,7 +49,8 @@ void TimeDiff::setSecondFragment(const QModelIndex &index)
 std::unique_ptr<Fragment> TimeDiff::indexToFragment(const QModelIndex &index)
 {
     // read model data
-    quint64 number = index.siblingAtColumn(FragmentsModel::Column::kNumber).data().toUInt();
+    int row = index.row();
+    quint64 number = index.model()->headerData(row, Qt::Vertical).toUInt();
     quint64 start = index.siblingAtColumn(FragmentsModel::Column::kStart).data().toUInt();
     quint64 end = index.siblingAtColumn(FragmentsModel::Column::kEnd).data().toUInt();
     Fragment::Port port = static_cast<Fragment::Port>(index.siblingAtColumn(FragmentsModel::Column::kId).data().toUInt());

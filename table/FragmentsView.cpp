@@ -52,7 +52,6 @@ void FragmentsView::contextMenuEvent(QContextMenuEvent *event)
                 compare->setDisabled(true);
             break;
 
-        case FragmentsModel::kNumber:
         case FragmentsModel::kId:
         case FragmentsModel::kData:
             select->setVisible(false);
@@ -85,12 +84,13 @@ void FragmentsView::keyPressEvent(QKeyEvent *event)
 
 void FragmentsView::handleCopyAction()
 {
-    // Get the selected indices
-    QModelIndexList indices = selectionModel()->selectedIndexes();
+    QModelIndexList indices;
+    bool fullRows = false;
+
+    fullRows = selectionModel()->selectedRows().isEmpty() ? false : true;
+    indices = selectionModel()->selectedIndexes();
     if (indices.isEmpty())
-    {
         return;
-    }
 
     // Sort the indices by row and column
     std::sort(indices.begin(), indices.end());
@@ -105,7 +105,13 @@ void FragmentsView::handleCopyAction()
         if (index.row() != lastRow)
         {
             lastRow = index.row();
-            rows.append(QString());
+            if(fullRows)
+            {
+                int number = index.model()->headerData(index.row(), Qt::Vertical).toUInt();
+                rows.append(QString("%1\t").arg(number));
+            }
+            else
+                rows.append(QString());
         }
 
         QAbstractItemDelegate *delegate = itemDelegateForIndex(index);
@@ -116,9 +122,6 @@ void FragmentsView::handleCopyAction()
 
         switch( static_cast<FragmentsModel::Column>(index.column()) )
         {
-        case FragmentsModel::kNumber:
-            text = index.data().toString();
-            break;
         case FragmentsModel::kStart:
         case FragmentsModel::kEnd:
             timeDelegate = qobject_cast<TimeDelegate*>(delegate);

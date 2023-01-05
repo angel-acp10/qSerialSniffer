@@ -12,8 +12,7 @@ class FragmentsModel : public QAbstractTableModel
 public:
     enum Column
     {
-        kNumber=0,
-        kStart,
+        kStart=0,
         kEnd,
         kId,
         kData
