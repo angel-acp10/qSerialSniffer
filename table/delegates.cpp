@@ -4,14 +4,11 @@
 //------------------------
 // Delegates
 //------------------------
-Delegates::Delegates(QAbstractTableModel *model,
-                     QAbstractProxyModel *filteredModel,
-                     SettingsDialog *settings,
+Delegates::Delegates(SettingsDialog *settings,
                      QObject *parent)
     : QObject{parent},
       time(new TimeDelegate(this)),
-      id(new IdDelegate(settings, this)),
-      encoding(new EncodingDelegate(model, filteredModel, this))
+      id(new IdDelegate(settings, this))
 {
 }
 
@@ -103,6 +100,7 @@ void IdDelegate::paint(QPainter *painter,
 //------------------------
 // EncodingDelegate
 //------------------------
+/*
 EncodingDelegate::EncodingDelegate(QAbstractTableModel *model,
                                    QAbstractProxyModel *filteredModel,
                                    QObject *parent)
@@ -216,4 +214,4 @@ QString EncodingDelegate::showAsBin(const QByteArray &arr) const
     return fullStr;
 }
 
-
+*/

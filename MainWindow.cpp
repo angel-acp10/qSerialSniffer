@@ -24,9 +24,7 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
-    mDelegates = new Delegates(mFragModel,
-                               mSearch->getProxyModel(),
-                               mSettingsDialog,
+    mDelegates = new Delegates(mSettingsDialog,
                                this);
 
     initTopPortLabels();
@@ -173,12 +171,12 @@ void MainWindow::initLeftToolbar()
 void MainWindow::initEncodingList()
 {
     std::unique_ptr<QList<QString>> encodingList(
-                mDelegates->encoding->getEncodings() );
+                mFragModel->getEncodings() );
 
     ui->encoding_comboBox->addItems(*encodingList);
 
     connect(ui->encoding_comboBox, &QComboBox::currentTextChanged,
-            mDelegates->encoding, &EncodingDelegate::showAs);
+            mFragModel, &FragmentsModel::setEncoding);
 }
 
 void MainWindow::initTable()
@@ -188,7 +186,6 @@ void MainWindow::initTable()
     ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kStart, mDelegates->time);
     ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kEnd, mDelegates->time);
     ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kId, mDelegates->id);
-    ui->tableView->setItemDelegateForColumn(FragmentsModel::Column::kData, mDelegates->encoding);
 
     ui->tableView->setModel(mFragModel);
 
@@ -224,7 +221,6 @@ void MainWindow::initRightFilteredTable()
     ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kStart, mDelegates->time);
     ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kEnd, mDelegates->time);
     ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kId, mDelegates->id);
-    ui->filtered_tableView->setItemDelegateForColumn(FragmentsModel::Column::kData, mDelegates->encoding);
 
     ui->filtered_tableView->setModel(mSearch->getProxyModel());
 
@@ -342,7 +338,6 @@ void MainWindow::initBottomTimeDiff()
     ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kStart, mDelegates->time);
     ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kEnd, mDelegates->time);
     ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kId, mDelegates->id);
-    ui->timeDiff_tableView->setItemDelegateForColumn(FragmentsModel::Column::kData, mDelegates->encoding);
 
     ui->timeDiff_tableView->setModel(mTimeDiff->getModel());
 
@@ -427,7 +422,7 @@ void MainWindow::play()
     ui->settings_toolButton->setDisabled(true);
 
     QMetaObject::invokeMethod(mSerial, "setBaudRate", Qt::AutoConnection,
-                              Q_ARG(qint32, 115200));
+                              Q_ARG(qint32, 460800));
 
     QMetaObject::invokeMethod(mSerial, "setDataBits", Qt::AutoConnection,
                               Q_ARG(QSerialPort::DataBits, QSerialPort::DataBits::Data8));
@@ -451,7 +446,7 @@ void MainWindow::play()
                            InitUart::Parity::PARITY_NONE,
                            InitUart::Stop::STOP_1bit);
 
-    mTimer->start(100);
+    mTimer->start(5);
 }
 
 void MainWindow::pause()

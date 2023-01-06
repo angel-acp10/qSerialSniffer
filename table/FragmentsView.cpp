@@ -117,7 +117,6 @@ void FragmentsView::handleCopyAction()
         QAbstractItemDelegate *delegate = itemDelegateForIndex(index);
         TimeDelegate *timeDelegate;
         IdDelegate *idDelegate;
-        EncodingDelegate *encDelegate;
         QString text;
 
         switch( static_cast<FragmentsModel::Column>(index.column()) )
@@ -136,9 +135,7 @@ void FragmentsView::handleCopyAction()
             break;
 
         case FragmentsModel::kData:
-            encDelegate = qobject_cast<EncodingDelegate*>(delegate);
-            Q_ASSERT(encDelegate);
-            text = encDelegate->displayText(index.data(), QLocale());
+            text = index.data().toString();
             break;
         }
         rows.last().append(text+'\t');

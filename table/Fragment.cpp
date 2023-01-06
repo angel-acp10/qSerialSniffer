@@ -46,11 +46,47 @@ void Fragment::setEndAcumUs(const quint64 endAcumUs)
     m_endAcumUs = endAcumUs;
 }
 
-QByteArray Fragment::getData() const
+const QByteArray& Fragment::getData() const
 {
     return m_data;
 }
 void Fragment::setData(const QByteArray& data)
 {
     m_data = data;
+}
+
+const QString& Fragment::getAsciiHex() const
+{
+    return m_encAsciiHex;
+}
+void Fragment::setAsciiHex(const QString& asciiHex)
+{
+    m_encAsciiHex = asciiHex;
+}
+
+const QString& Fragment::getHex() const
+{
+    return m_encHex;
+}
+void Fragment::setHex(const QString& hex)
+{
+    m_encHex = hex;
+}
+
+const QString& Fragment::getDec() const
+{
+    return m_encDec;
+}
+void Fragment::setDec(const QString& dec)
+{
+    m_encDec = dec; 
+}
+
+const QString& Fragment::getBin() const
+{
+    return m_encBin;
+}
+void Fragment::setBin(const QString& bin)
+{
+    m_encBin = bin;
 }

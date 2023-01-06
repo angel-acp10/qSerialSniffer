@@ -26,7 +26,7 @@ bool FilteredFragmentsProxy::filterAcceptsRow(
     bool ok;
 
     index = sourceModel()->index(sourceRow, FragmentsModel::Column::kData, sourceParent);
-    QByteArray array = sourceModel()->data(index).toByteArray();
+    QByteArray array = sourceModel()->data(index, FragmentsModel::RawDataRole).toByteArray();
 
     index = sourceModel()->index(sourceRow, FragmentsModel::Column::kId, sourceParent);
     int id = sourceModel()->data(index).toInt();

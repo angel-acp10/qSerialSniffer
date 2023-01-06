@@ -3,6 +3,7 @@
 
 #include <qglobal.h>
 #include <QByteArray>
+#include <QString>
 
 class Fragment
 {
@@ -27,8 +28,20 @@ public:
     quint64 getEndAcumUs() const;
     void setEndAcumUs(const quint64 endAcumUs);
 
-    QByteArray getData() const;
+    const QByteArray& getData() const;
     void setData(const QByteArray& data);
+
+    const QString& getAsciiHex() const;
+    void setAsciiHex(const QString& asciiHex);
+
+    const QString& getHex() const;
+    void setHex(const QString& hex);
+
+    const QString& getDec() const;
+    void setDec(const QString& dec);
+
+    const QString& getBin() const;
+    void setBin(const QString& bin);
 
 
 private:
@@ -37,6 +50,10 @@ private:
     quint64 m_startAcumUs;
     quint64 m_endAcumUs;
     QByteArray m_data;
+    QString m_encAsciiHex;
+    QString m_encHex;
+    QString m_encDec;
+    QString m_encBin;
 };
 
 #endif // FRAGMENT_H

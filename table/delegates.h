@@ -22,14 +22,11 @@ class Delegates : public QObject
 {
     Q_OBJECT
 public:
-    explicit Delegates(QAbstractTableModel *model,
-                       QAbstractProxyModel *filteredModel,
-                       SettingsDialog *settings,
+    explicit Delegates(SettingsDialog *settings,
                        QObject *parent = nullptr);
 
     TimeDelegate *time;
     IdDelegate *id;
-    EncodingDelegate *encoding;
 };
 
 //------------------------
@@ -67,6 +64,7 @@ private:
 //------------------------
 // EncodingDelegate
 //------------------------
+/*
 class EncodingDelegate : public QStyledItemDelegate
 {
     Q_OBJECT
@@ -97,5 +95,5 @@ private:
     QString showAsDec(const QByteArray &arr) const;
     QString showAsBin(const QByteArray &arr) const;
 };
-
+*/
 #endif // DELEGATES_H
