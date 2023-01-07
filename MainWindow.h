@@ -3,12 +3,9 @@
 
 #include <QMainWindow>
 
-#include <QSerialPort>
 #include "SettingsDialog.h"
-#include "commands/SerialIO.h"
-#include "commands/CommandManager.h"
-#include "TimeStamp.h"
-#include <QTimer>
+
+#include "commands/CommWorker.h"
 
 #include "table/FragmentsModel.h"
 #include "table/Delegates.h"
@@ -42,19 +39,12 @@ private:
                               bool hide);
     void initAutoScroll_check();
 
-private slots:
-    void play();
-    void pause();
-
 private:
     Ui::MainWindow *ui;
 
     SettingsDialog *mSettingsDialog;
-    SerialIO *mSerial;
-    TimeStamp *mTStamp0;
-    TimeStamp *mTStamp1;
-    CommandManager *mCmds;
     FragmentsModel *mFragModel;
+    CommWorker *mCommWorker;
     Delegates *mDelegates;
     Search *mSearch;
     TimeDiff *mTimeDiff;

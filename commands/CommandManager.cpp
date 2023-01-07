@@ -27,6 +27,13 @@ CommandManager::~CommandManager()
         m_requests.clear();
 }
 
+void CommandManager::moveChildrenToThread(QThread *thread)
+{
+    this->moveToThread(thread);
+    for(QObject *child : this->children())
+        child->moveToThread(thread);
+}
+
 void CommandManager::addRequest(QByteArray &txCmd, Command *cmdPtr)
 {
     request_t request = {

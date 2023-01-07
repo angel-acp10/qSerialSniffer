@@ -5,16 +5,12 @@ SerialIO::SerialIO(QObject *parent)
     : QObject(parent),
       m_busy(false)
 {
-    m_timer = new QTimer();
+    m_timer = new QTimer(this);
     m_timer->setSingleShot(true);
     m_timer->setInterval(300);
     connect(m_timer, &QTimer::timeout, this, &SerialIO::onTimeout);
 
-    m_serial = new QSerialPort();
-
-    m_thread.reset(new QThread); // no parent
-    m_serial->moveToThread(m_thread.get());
-    m_thread->start();
+    m_serial = new QSerialPort(this);
 
     connect(m_serial, &QSerialPort::errorOccurred,
             this, &SerialIO::onError);
@@ -22,12 +18,15 @@ SerialIO::SerialIO(QObject *parent)
 
 SerialIO::~SerialIO()
 {
-    if(m_serial->isOpen())
-        QMetaObject::invokeMethod(m_serial, "close");
-    m_thread->quit();
-    m_thread->wait();
     delete m_serial;
     delete m_timer;
+}
+
+void SerialIO::moveChildrenToThread(QThread *thread)
+{
+    this->moveToThread(thread);
+    for(QObject *child : this->children())
+        child->moveToThread(thread);
 }
 
 bool SerialIO::isBusy()

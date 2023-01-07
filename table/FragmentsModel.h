@@ -35,7 +35,7 @@ public:
     explicit FragmentsModel(QObject *parent = nullptr);
 
     std::unique_ptr<QList<QString>> getEncodings() const;
-    void appendFragment(Fragment &frag);
+
 
     int rowCount(const QModelIndex &parent = QModelIndex()) const override;
     int columnCount(const QModelIndex &parent = QModelIndex()) const override;
@@ -47,6 +47,8 @@ public:
     void fetchMore(const QModelIndex& parent) override;
 
 public slots:
+    void appendFragment(Fragment &frag);
+    void appendFragments(QList<Fragment> fragLst);
     void reset();
     void setEncoding(const QString& encoding);
 

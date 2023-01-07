@@ -1,8 +1,7 @@
-#ifndef SERIALTHREAD_H
-#define SERIALTHREAD_H
+#ifndef SERIALIO_H
+#define SERIALIO_H
 
 #include <QSerialPort>
-#include <QThread>
 #include <QObject>
 #include <QTimer>
 
@@ -13,6 +12,7 @@ class SerialIO : public QObject
 public:
     SerialIO(QObject *parent=nullptr);
     ~SerialIO();
+    void moveChildrenToThread(QThread *thread);
 
     bool isBusy();
 
@@ -39,7 +39,6 @@ private:
     int m_rxLen;
     QByteArray m_rxBuff;
     QSerialPort *m_serial;
-    std::unique_ptr<QThread> m_thread;
 
 private slots:
     void onReadBytes();
@@ -48,4 +47,4 @@ private slots:
 
 };
 
-#endif // SERIALTHREAD_H
+#endif // SERIALIO_H

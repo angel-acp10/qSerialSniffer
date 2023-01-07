@@ -5,24 +5,26 @@
 #include <QMessageBox>
 #include <QDateTime>
 #include <QFontDatabase>
-#include "table/Fragment.h"
 #include <QDebug>
+#include <QThread>
 #include <memory>
 
 MainWindow::MainWindow(QWidget *parent)
     : QMainWindow(parent),
       ui(new Ui::MainWindow),
       mSettingsDialog(new SettingsDialog(this)),
-      mSerial(new SerialIO()),
-      mTStamp0(new TimeStamp(this)),
-      mTStamp1(new TimeStamp(this)),
-      mCmds(new CommandManager(mSerial, mTStamp0, mTStamp1, this)),
       mFragModel(new FragmentsModel(this)),
+      mCommWorker( new CommWorker(mFragModel, mSettingsDialog)),
       mSearch(new Search(mFragModel, mSettingsDialog, this)),
-      mTimeDiff(new TimeDiff(this)),
-      mTimer(new QTimer)
+      mTimeDiff(new TimeDiff(this))
 {
     ui->setupUi(this);
+
+    // communications thread
+    QThread *commThread = new QThread;
+    mCommWorker->moveToThread(commThread);
+    mCommWorker->moveChildrenToThread(commThread);
+    commThread->start();
 
     mDelegates = new Delegates(mSettingsDialog,
                                this);
@@ -44,25 +46,6 @@ MainWindow::MainWindow(QWidget *parent)
     initAutoScroll_check();
 
     mSettingsDialog->loadSettings("settings.json");
-
-
-    connect(mCmds->getId, &GetId::received,
-            this, [this](GetId::Status, QString id)
-            {
-                QMessageBox::information(this, "GetId response", id);
-            });
-
-    connect(mCmds->getAllQueue, &GetAllQueue::received,
-            this, [this](QList<Fragment> lst)
-            {
-                for(auto &frag : lst)
-                {
-                    frag.setNumber(mFragModel->rowCount());
-                    mFragModel->appendFragment(frag);
-                }
-            });
-
-    connect(mTimer, &QTimer::timeout, mCmds->getAllQueue, &GetAllQueue::write);
 }
 
 MainWindow::~MainWindow()
@@ -109,13 +92,24 @@ void MainWindow::initLeftToolbar()
     connect(ui->settings_toolButton, &QToolButton::clicked,
                 mSettingsDialog, &SettingsDialog::exec);
 
-    connect(ui->play_toolButton, &QToolButton::clicked, this, &MainWindow::play);
-    connect(ui->play_toolButton, &QToolButton::clicked, mTStamp0, &TimeStamp::onPlayClicked);
-    connect(ui->play_toolButton, &QToolButton::clicked, mTStamp1, &TimeStamp::onPlayClicked);
-
-    connect(ui->pause_toolButton, &QToolButton::clicked, this, &MainWindow::pause);
-    connect(ui->pause_toolButton, &QToolButton::clicked, mTStamp0, &TimeStamp::onPauseClicked);
-    connect(ui->pause_toolButton, &QToolButton::clicked, mTStamp1, &TimeStamp::onPauseClicked);
+    connect(ui->play_toolButton, &QToolButton::clicked, mCommWorker, &CommWorker::play);
+    connect(ui->play_toolButton, &QToolButton::clicked,
+            this, [this]()
+            {
+                ui->play_toolButton->setDisabled(true);
+                ui->pause_toolButton->setEnabled(true);
+                ui->settings_toolButton->setDisabled(true);
+            }
+    );
+    connect(ui->pause_toolButton, &QToolButton::clicked, mCommWorker, &CommWorker::pause);
+    connect(ui->pause_toolButton, &QToolButton::clicked,
+            this, [this]()
+            {
+                ui->pause_toolButton->setDisabled(true);
+                ui->play_toolButton->setEnabled(true);
+                ui->settings_toolButton->setEnabled(true);
+            }
+    );
 
     connect(ui->reset_toolButton, &QToolButton::clicked, mFragModel, &FragmentsModel::reset);
 
@@ -414,49 +408,3 @@ void MainWindow::initAutoScroll_check()
             }
     );
 }
-
-void MainWindow::play()
-{
-    ui->play_toolButton->setDisabled(true);
-    ui->pause_toolButton->setEnabled(true);
-    ui->settings_toolButton->setDisabled(true);
-
-    QMetaObject::invokeMethod(mSerial, "setBaudRate", Qt::AutoConnection,
-                              Q_ARG(qint32, 460800));
-
-    QMetaObject::invokeMethod(mSerial, "setDataBits", Qt::AutoConnection,
-                              Q_ARG(QSerialPort::DataBits, QSerialPort::DataBits::Data8));
-
-    QMetaObject::invokeMethod(mSerial, "setParity", Qt::AutoConnection,
-                              Q_ARG(QSerialPort::Parity, QSerialPort::Parity::NoParity));
-
-    QMetaObject::invokeMethod(mSerial, "setPortName", Qt::AutoConnection,
-                              Q_ARG(QString, mSettingsDialog->getPort()));
-
-    QMetaObject::invokeMethod(mSerial, "setStopBits", Qt::AutoConnection,
-                              Q_ARG(QSerialPort::StopBits, QSerialPort::StopBits::OneStop));
-
-    QMetaObject::invokeMethod(mSerial, "setTimeout", Qt::AutoConnection,
-                              Q_ARG(uint, 200));
-
-    QMetaObject::invokeMethod(mSerial, "open");
-
-    mCmds->initUart->write(115200,
-                           InitUart::DataSize::DATASIZE_8bits,
-                           InitUart::Parity::PARITY_NONE,
-                           InitUart::Stop::STOP_1bit);
-
-    mTimer->start(5);
-}
-
-void MainWindow::pause()
-{
-    mTimer->stop();
-    mCmds->deInitUart->write();
-    ui->pause_toolButton->setDisabled(true);
-    ui->play_toolButton->setEnabled(true);
-    ui->settings_toolButton->setEnabled(true);
-
-    QMetaObject::invokeMethod(mSerial, "close");
-}
-

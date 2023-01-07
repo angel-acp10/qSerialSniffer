@@ -30,6 +30,28 @@ void FragmentsModel::appendFragment(Fragment &frag)
     endInsertRows();
 }
 
+
+void FragmentsModel::appendFragments(QList<Fragment> fragLst)
+{
+    int firstRowIndex = rowCount();
+    int lastRowIndex = firstRowIndex + (fragLst.size()-1);
+
+    int currRowIndex = firstRowIndex;
+
+    beginInsertRows(QModelIndex(), firstRowIndex, lastRowIndex);
+    for(auto &frag : fragLst)
+    {
+        frag.setNumber(currRowIndex);
+        frag.setAsciiHex(toAsciiHex(frag.getData()));
+        frag.setHex(toHex(frag.getData()));
+        frag.setDec(toDec(frag.getData()));
+        frag.setBin(toBin(frag.getData()));
+        m_fragments.append(frag);
+        currRowIndex++;
+    }
+    endInsertRows();
+}
+
 int FragmentsModel::rowCount(const QModelIndex &parent) const
 {
     (void)parent;

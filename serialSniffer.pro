@@ -12,6 +12,7 @@ SOURCES += \
     SettingsDialog.cpp \
     SettingsFile.cpp \
     TimeStamp.cpp \
+    commands/CommWorker.cpp \
     commands/Command.cpp \
     commands/CommandManager.cpp \
     commands/DeInitUart.cpp \
@@ -36,6 +37,7 @@ HEADERS += \
     SettingsDialog.h \
     SettingsFile.h \
     TimeStamp.h \
+    commands/CommWorker.h \
     commands/Command.h \
     commands/CommandManager.h \
     commands/DeInitUart.h \

@@ -19,6 +19,8 @@ public:
     explicit CommandManager(SerialIO *ser, TimeStamp *tStamp0, TimeStamp *tStamp1, QObject *parent = nullptr);
     ~CommandManager();
 
+    void moveChildrenToThread(QThread *thread);
+
     // commands
     GetId *getId;
     InitUart *initUart;
