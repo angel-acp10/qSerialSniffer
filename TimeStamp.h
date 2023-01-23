@@ -12,7 +12,7 @@ public:
     ~TimeStamp();
 
     quint64 rawToUs(const quint32 ts_raw) const;
-    quint64 deltaUs(const quint64 prevTs_us, const quint64 ts_us) const;
+    qint64 deltaUs(const quint64 prevTs_us, const quint64 ts_us) const;
     quint64 computeAccumUs_fromUs(const quint64 ts_us);
     quint64 computeAccumUs_fromRaw(const quint32 ts_raw);
     void resetAccumUs();

@@ -74,7 +74,7 @@ void SerialIO::startRequest(const QByteArray &request)
     m_busy = true;
     m_rxLen = 0;
     m_serial->write(request);
-    qDebug() << "SerialIO w:" << request;
+    //qDebug() << "SerialIO w:" << request;
     m_timer->start();
     connect(m_serial, &QSerialPort::readyRead,
             this, &SerialIO::onReadBytes);
@@ -109,7 +109,7 @@ void SerialIO::onReadBytes()
             m_timer->stop();
             disconnect(m_serial, &QSerialPort::readyRead, this, nullptr);
             emit replyReceived(m_rxBuff.mid(0, cmdLength));
-            qDebug() << "SerialIO r:" << m_rxBuff.mid(0, cmdLength);
+            //qDebug() << "SerialIO r:" << m_rxBuff.mid(0, cmdLength);
             m_busy = false;
         }
     }

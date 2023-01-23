@@ -2,11 +2,11 @@
 #include "CommandManager.h"
 
 #include <limits>
+#include <QDebug>
 
-GetAllQueue::GetAllQueue(CommandManager *cmd, TimeStamp *tStamp0, TimeStamp *tStamp1, QObject *parent)
+GetAllQueue::GetAllQueue(CommandManager *cmd, TimeStamp *tStamp, QObject *parent)
     : Command{cmd, parent},
-      m_tStamp0(tStamp0),
-      m_tStamp1(tStamp1)
+      m_tStamp(tStamp)
 {
 }
 
@@ -43,6 +43,7 @@ void GetAllQueue::read(const QByteArray &in)
         return;
 
     case STATUS_EMPTY_FRAGQUEUE:
+        qDebug() << "Empty";
         ts_raw = (quint32)(in[4]&0x000000FF);
         ts_raw <<= 8;
         ts_raw |= (quint32)(in[5]&0x000000FF);
@@ -50,8 +51,7 @@ void GetAllQueue::read(const QByteArray &in)
         ts_raw |= (quint32)(in[6]&0x000000FF);
         ts_raw <<= 8;
         ts_raw |= (quint32)(in[7]&0x000000FF);
-        emit emptyFragmentsQueue( m_tStamp0->computeAccumUs_fromRaw(ts_raw) );
-        m_tStamp1->computeAccumUs_fromRaw(ts_raw);
+        emit emptyFragmentsQueue( m_tStamp->computeAccumUs_fromRaw(ts_raw) );
         return;
 
     case STATUS_OK:
@@ -90,24 +90,19 @@ quint16 GetAllQueue::getFragment(const QByteArray &in, const int st, Fragment &o
 {
     quint16 nBytes;
     quint32 start_raw, end_raw;
-    TimeStamp * tStamp;
-
+    static int idx=0;
 
     // port
     outFrag.setPort((Fragment::Port)in[st+0]);
 
-    switch(outFrag.getPort())
-    {
-    case 2: tStamp = m_tStamp0; break;
-    case 3: tStamp = m_tStamp1; break;
-    }
-
+    //qDebug() << "Fragment i:"<< idx << " port:" << outFrag.getPort();
+    idx++;
     // number of bytes until the end of the fragment
     nBytes  = ((quint16)in[st+1]<<8);
     nBytes |= ((quint16)in[st+2]);
 
     // numBytes - starts counting from here (0)
-
+    //qDebug() << "start:";
     start_raw = (quint32)(in[st+3]&0x000000FF);
     start_raw <<= 8;
     start_raw |= (quint32)(in[st+4]&0x000000FF);
@@ -115,8 +110,9 @@ quint16 GetAllQueue::getFragment(const QByteArray &in, const int st, Fragment &o
     start_raw |= (quint32)(in[st+5]&0x000000FF);
     start_raw <<= 8;
     start_raw |= (quint32)(in[st+6]&0x000000FF);
-    outFrag.setStartAcumUs( tStamp->computeAccumUs_fromRaw(start_raw) );
+    outFrag.setStartAcumUs( m_tStamp->computeAccumUs_fromRaw(start_raw) );
 
+    //qDebug() << "end:";
     end_raw = (quint32)(in[st+7]&0x000000FF);
     end_raw <<= 8;
     end_raw |= (quint32)(in[st+8]&0x000000FF);
@@ -124,7 +120,7 @@ quint16 GetAllQueue::getFragment(const QByteArray &in, const int st, Fragment &o
     end_raw |= (quint32)(in[st+9]&0x000000FF);
     end_raw <<= 8;
     end_raw |= (quint32)(in[st+10]&0x000000FF);
-    outFrag.setEndAcumUs( tStamp->computeAccumUs_fromRaw(end_raw) );
+    outFrag.setEndAcumUs( m_tStamp->computeAccumUs_fromRaw(end_raw) );
     // remaining bytes until end of the fragment are data
     outFrag.setData( in.mid(st+11, nBytes-8) ); // 8 bits are not data (are start_raw and end_raw)
 

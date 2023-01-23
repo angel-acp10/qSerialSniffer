@@ -17,7 +17,7 @@ public:
         STATUS_RXCIRC3_OVF=0xAD
     };
 
-    explicit GetAllQueue(CommandManager *cmd, TimeStamp *tStamp0, TimeStamp *tStamp1, QObject *parent = nullptr);
+    explicit GetAllQueue(CommandManager *cmd, TimeStamp *tStamp, QObject *parent = nullptr);
     ~GetAllQueue();
 
     void read(const QByteArray &in) override;
@@ -31,8 +31,7 @@ signals:
     void received(QList<Fragment> fragList);
 
 private:
-    TimeStamp *m_tStamp0;
-    TimeStamp *m_tStamp1;
+    TimeStamp *m_tStamp;
 
     void parseAllFragments(const QByteArray &in);
     quint16 getFragment(const QByteArray &in, const int start, Fragment &outFrag) const;

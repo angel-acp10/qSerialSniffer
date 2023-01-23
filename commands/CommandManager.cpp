@@ -1,12 +1,12 @@
 #include "CommandManager.h"
 #include <QDebug>
 
-CommandManager::CommandManager(SerialIO *ser, TimeStamp *tStamp0, TimeStamp *tStamp1, QObject *parent)
+CommandManager::CommandManager(SerialIO *ser, TimeStamp *tStamp, QObject *parent)
     : QObject{parent},
       getId(new GetId(this, this)),
       initUart(new InitUart(this, this)),
       deInitUart(new DeInitUart(this, this)),
-      getAllQueue(new GetAllQueue(this, tStamp0, tStamp1, this)),
+      getAllQueue(new GetAllQueue(this, tStamp, this)),
       m_ser(ser),
       m_requests(),
       m_currRequest()

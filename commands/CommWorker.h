@@ -28,8 +28,7 @@ private:
     SerialIO *m_ser;
     CommandManager *m_cmd;
     QTimer *m_timer;
-    TimeStamp *m_tStamp0;
-    TimeStamp *m_tStamp1;
+    TimeStamp *m_tStamp;
 
     FragmentsModel *m_fragModel;
     SettingsDialog *m_settings;

@@ -23,46 +23,65 @@ quint64 TimeStamp::rawToUs(const quint32 ts_raw) const
     quint64 us = (ts_raw & 0x0000FFFF)*2; // lower 16 bits are a counter of 2us
 
     us += ((quint64)tenths*100*1000);
+    qDebug() << us;
     return us;
 }
 
-quint64 TimeStamp::deltaUs(const quint64 prevTs_us, const quint64 ts_us) const
+qint64 TimeStamp::deltaUs(const quint64 prevTs_us, const quint64 ts_us) const
 {
-    quint64 delta;
-    quint64 maxUs;
+    qint64 delta;
+    static const quint64 maxUs =
+            (quint64)std::numeric_limits<quint16>::max()*100*1000 + // tenths of seconds converted to us
+            100000; // max us
 
-    if(ts_us >= prevTs_us)
-        delta = ts_us - prevTs_us;
-    else
+    delta = ts_us - prevTs_us;
+
+    if(delta >= 0) // ts_us is the most recent
+        return delta; // positive
+
+    else if(static_cast<quint64>(-delta) < maxUs/2) // ts_us is not the most recent, but is still not considered overflow
+        return delta; // negative
+
+    else //  ts_us is the most recent, but there's an overflow
     {
-        maxUs = (quint64)std::numeric_limits<quint16>::max()*100*1000; // maximum tenths of second in us
-        maxUs += 100000; // + max us
+        //qDebug() << "OVERFLOW!!! on prevTsUs:" << m_prevTsUs << " TsUs:" << ts_us;
         delta = maxUs - prevTs_us;
         delta += (ts_us + 1);
+        return delta; // positive
     }
-    return delta;
 }
 
 
 quint64 TimeStamp::computeAccumUs_fromUs(const quint64 ts_us)
 {
+    qint64 delta;
+    quint64 res;
     switch(m_stage)
     {
     case STAGE_PLAY:
-        m_accumUs += deltaUs(m_prevTsUs, ts_us);
+        delta = deltaUs(m_prevTsUs, ts_us);
+        res = m_accumUs + delta;
+        if(delta > 0)
+        {
+            m_prevTsUs = ts_us;
+            m_accumUs = res; // only update m_accumUs if it's the newest point
+        }
         break;
 
     case STAGE_PAUSE:
         m_stage = STAGE_PLAY;
+        res = m_accumUs;
         break;
 
     case STAGE_RESET:
         m_stage = STAGE_PLAY;
+        res = 0;
         m_accumUs = 0;
         break;
     }
-    m_prevTsUs = ts_us;
-    return m_accumUs;
+    //qDebug() << "prevTsUs:" << m_prevTsUs << " TsUs:" << ts_us << "AccumUs:" << m_accumUs;
+    //m_prevTsUs = ts_us;
+    return res;
 }
 
 quint64 TimeStamp::computeAccumUs_fromRaw(const quint32 ts_raw)

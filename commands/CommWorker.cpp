@@ -8,10 +8,9 @@ CommWorker::CommWorker(FragmentsModel *fragModel,
       m_fragModel(fragModel),
       m_settings(settings)
 {
-    m_tStamp0 = new TimeStamp(this);
-    m_tStamp1 = new TimeStamp(this);
+    m_tStamp = new TimeStamp(this);
     m_ser = new SerialIO(this);
-    m_cmd = new CommandManager(m_ser, m_tStamp0, m_tStamp1, this);
+    m_cmd = new CommandManager(m_ser, m_tStamp, this);
     m_timer = new QTimer(this);
 
     qRegisterMetaType<Fragment>();
@@ -25,8 +24,7 @@ CommWorker::~CommWorker()
     delete m_timer;
     delete m_cmd;
     delete m_ser;
-    delete m_tStamp0;
-    delete m_tStamp1;
+    delete m_tStamp;
 }
 
 void CommWorker::moveChildrenToThread(QThread *thread)
@@ -53,13 +51,11 @@ void CommWorker::play()
                             InitUart::Stop::STOP_1bit);
     m_timer->start(20);
 
-    m_tStamp0->onPlayClicked();
-    m_tStamp1->onPlayClicked();
+    m_tStamp->onPlayClicked();
 }
 void CommWorker::pause()
 {
-    m_tStamp0->onPauseClicked();
-    m_tStamp1->onPauseClicked();
+    m_tStamp->onPauseClicked();
 
     m_timer->stop();
     m_cmd->deInitUart->write();

@@ -44,18 +44,18 @@ bool FilteredFragmentsProxy::filterAcceptsRow(
         name = m_settings->getAliasA();
         m_exprTreeA->setArray(name.toStdString(), arrInfo);
         res = m_exprTreeA->evaluate(ok);
-        qDebug()<<name<<res;
+        //qDebug()<<name<<res;
         return res;
 
     case Fragment::PORT_B:
         name = m_settings->getAliasB();
         m_exprTreeB->setArray(name.toStdString(), arrInfo);
         res = m_exprTreeB->evaluate(ok);
-        qDebug()<<name<<res;
+        //qDebug()<<name<<res;
         return res;
 
     default:
-        qDebug()<<id;
+        //qDebug()<<id;
         return 0;
     }
 }
